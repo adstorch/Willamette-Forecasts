@@ -1,4 +1,4 @@
-# data manipulation -------------------------------------------------------
+# data manipulation ------------------------------------------------------------
 ## generate a data frame to fit model
 willAge5Fit.dat <- na.omit(
   head(
@@ -29,7 +29,7 @@ willAge5Pred.dat <- tail(
   1
 )
 
-# fit model and generate prediction ---------------------------------------
+# fit model and generate prediction --------------------------------------------
 ## create character string defining current model
 ## (string will have to be changed manually if parameterization changes)
 willAge5Mod.name <- "Willamette Age-5"
@@ -37,10 +37,10 @@ willAge5Mod.name <- "Willamette Age-5"
 ## fit OLS to define initial MCMC values
 ### fit OLS
 willAge5Init.mod <- lm(
-  log(willAge5_col)~
-    log(willAge4_col)+
-    sp_pdo+sp_trans+
-    ichthy_biom+
+  log(willAge5_col) ~
+    log(willAge4_col) +
+    sp_pdo+sp_trans +
+    ichthy_biom +
     cope_rich,
   data=willAge5Fit.dat
 )
@@ -68,8 +68,11 @@ willAge5Init.beta2SE <- coef(
 
 willAge5Init.beta3 <- as.numeric(
   willAge5Init.mod$coef[4])
-willAge5Init.beta3SE <- coef(summary(willAge5Init.mod
-)
+
+willAge5Init.beta3SE <- coef(
+  summary(
+    willAge5Init.mod
+  )
 )[4,2]
 
 willAge5Init.beta4 <- as.numeric(
@@ -94,14 +97,14 @@ willAge5Init.beta5SE <- coef(
 
 ## create data list to fit model and generate prediction
 willAge5Mod.dat <- list(
-  willAge5_col=as.numeric(
+  willAge5_col = as.numeric(
     c(
       log(willAge5Fit.dat$willAge5_col),
       "NA"
     )
   ),
   
-  willAge4_col=log(
+  willAge4_col = log(
     c(
       willAge5Fit.dat$willAge4_col,
       willAge5Pred.dat$willAge4_col
@@ -130,7 +133,7 @@ willAge5Mod.dat <- list(
   
   nObs=length(
     willAge5Fit.dat$willAge5_col
-  )+1,
+  ) + 1,
   
   Y = c(
     head(
@@ -150,7 +153,7 @@ willAge5Mod.dat <- list(
       willChsHWprop.dat,
       -1
     )[,4]
-  )+1
+  ) + 1
 )
 
 ## define initial values
@@ -162,32 +165,32 @@ inits.willAge5 <- function()
   list(
     beta1.willAge5 = runif(
       1,
-      willAge5Init.beta1-(5*willAge5Init.beta1SE),
-      willAge5Init.beta1+(5*willAge5Init.beta1SE)
+      willAge5Init.beta1 - (5 * willAge5Init.beta1SE),
+      willAge5Init.beta1 + (5 * willAge5Init.beta1SE)
     ),
     
     beta2.willAge5 = runif(
       1,
-      willAge5Init.beta2-(5*willAge5Init.beta2SE),
-      willAge5Init.beta2+(5*willAge5Init.beta2SE)
+      willAge5Init.beta2 - (5 * willAge5Init.beta2SE),
+      willAge5Init.beta2 + (5 * willAge5Init.beta2SE)
     ),
     
     beta3.willAge5 = runif(
       1,
-      willAge5Init.beta3-(5*willAge5Init.beta3SE),
-      willAge5Init.beta3+(5*willAge5Init.beta3SE)
+      willAge5Init.beta3 - (5 * willAge5Init.beta3SE),
+      willAge5Init.beta3 + (5 * willAge5Init.beta3SE)
     ),
     
     beta4.willAge5 = runif(
       1,
-      willAge5Init.beta4-(5*willAge5Init.beta4SE),
-      willAge5Init.beta4+(5*willAge5Init.beta4SE)
+      willAge5Init.beta4 - (5 * willAge5Init.beta4SE),
+      willAge5Init.beta4 + (5 * willAge5Init.beta4SE)
     ),
     
     beta5.willAge5 = runif(
       1,
-      willAge5Init.beta5-(5*willAge5Init.beta5SE),
-      willAge5Init.beta5+(5*willAge5Init.beta5SE)
+      willAge5Init.beta5 - (5 * willAge5Init.beta5SE),
+      willAge5Init.beta5 + (5 * willAge5Init.beta5SE)
     )
   )
 }
@@ -202,12 +205,12 @@ cat('
       
       ## age 4 predictions in log space
       muWillAge5_col[i] <-
-        alpha.willAge5[i]+
-        beta1.willAge5*(willAge4_col[i]-mean(willAge4_col[]))+
-        beta2.willAge5*(sp_pdo[i]-mean(sp_pdo[]))+
-        beta3.willAge5*(sp_trans[i]-mean(sp_trans[]))+
-        beta4.willAge5*(ichthy_biom[i]-mean(ichthy_biom[]))+
-        beta5.willAge5*(cope_rich[i]-mean(cope_rich[]))
+        alpha.willAge5[i] +
+        beta1.willAge5 * (willAge4_col[i]-mean(willAge4_col[])) +
+        beta2.willAge5 * (sp_pdo[i]-mean(sp_pdo[])) +
+        beta3.willAge5 * (sp_trans[i]-mean(sp_trans[])) +
+        beta4.willAge5 * (ichthy_biom[i]-mean(ichthy_biom[])) +
+        beta5.willAge5 * (cope_rich[i]-mean(cope_rich[]))
       
       ## age return predictions on the arithmetic scale
       pred_willAge5[i] <- exp(muWillAge5_col[i])
@@ -217,7 +220,7 @@ cat('
     # process model for intercept
     for (i in 2:nObs){
       ## define time-varying alpha parameter
-      alpha.willAge5[i] <- alpha.willAge5[i-1]+Walpha.willAge5[i]
+      alpha.willAge5[i] <- alpha.willAge5[i-1] + Walpha.willAge5[i]
       
       ## prior for annual deviation among alphas
       Walpha.willAge5[i] ~ dnorm(0,tau.Walpha.willAge5)
@@ -273,9 +276,9 @@ cat('
     r <- 1/inv.r
     X0 ~ dnorm(Y1, 0.001)
     
-    predHat_willAge5 <- pred_willAge5[nObs]-(pred_willAge5[nObs]*EY[nHWobs])
+    predHat_willAge5 <- pred_willAge5[nObs] - (pred_willAge5[nObs]*EY[nHWobs])
   }',
-  file={willAge5.mod <- tempfile()})
+    file={willAge5.mod <- tempfile()})
 
 ## define parameters to monitor
 params.willAge5 <- c(
@@ -297,6 +300,7 @@ params.willAge5 <- c(
 
 ## call jags
 start <- Sys.time()
+
 fit.willAge5 <- jags.parallel(
   data = willAge5Mod.dat,
   # inits = inits.willAge5,  # see above
@@ -314,7 +318,7 @@ fit.willAge5 <- jags.parallel(
 stop <- Sys.time()
 duration <- stop-start
 print(duration)
-# review and summarize output ---------------------------------------------
+# review and summarize output --------------------------------------------------
 ## review bugs object
 fit.willAge5
 
@@ -329,7 +333,7 @@ pred.mcmc.willAge5 <- mcmc.willAge5[, paste(
 
 ## summarize output for current prediction
 ### create data frame to store output
-willAge5.pred.out<-data.frame(
+willAge5.pred.out <- data.frame(
   model=character(),
   mean.pred.willAge5=numeric(),
   lwrHDI.willAge5=numeric(),
@@ -338,7 +342,7 @@ willAge5.pred.out<-data.frame(
 )
 
 ### append output to new data frame (from above)
-willAge5.pred.out[1,]<-c(
+willAge5.pred.out[1,] <- c(
   willAge5Mod.name,
   round(
     mean(
@@ -350,7 +354,7 @@ willAge5.pred.out[1,]<-c(
   round(
     hdi(
       pred.mcmc.willAge5,
-      credMass=0.95
+      credMass = 0.95
     )[1],
     0
   ),
@@ -358,7 +362,7 @@ willAge5.pred.out[1,]<-c(
   round(
     hdi(
       pred.mcmc.willAge5,
-      credMass=0.95
+      credMass = 0.95
     )[2],
     0
   )
@@ -368,18 +372,19 @@ willAge5.pred.out[1,]<-c(
 predHat.mcmc.willAge5 <- mcmc.willAge5[, "predHat_willAge5"]
 
 #### create data frame to store output for hatchery predictions
-willAge5.predHat.out<-data.frame(
-  model=character(),
-  mean.pred.willAge5=numeric(),
-  lwrHDI.willAge5=numeric(),
-  UprHDI.willAge5=numeric(),
+willAge5.predHat.out <- data.frame(
+  model = character(),
+  mean.pred.willAge5 = numeric(),
+  lwrHDI.willAge5 = numeric(),
+  UprHDI.willAge5 = numeric(),
   stringsAsFactors = FALSE
 )
 
 #### append output to new data frame (from above)
 willAge5.predHat.out[1,]<-c(
   paste(
-    willAge5Mod.name,"hatchery"
+    willAge5Mod.name,
+    "hatchery"
   ),
   round(
     mean(
@@ -391,7 +396,7 @@ willAge5.predHat.out[1,]<-c(
   round(
     hdi(
       predHat.mcmc.willAge5,
-      credMass=0.95
+      credMass = 0.95
     )[1],
     0
   ),
@@ -399,7 +404,7 @@ willAge5.predHat.out[1,]<-c(
   round(
     hdi(
       predHat.mcmc.willAge5,
-      credMass=0.95
+      credMass = 0.95
     )[2],
     0
   )
