@@ -1,4 +1,4 @@
-# data manipulation -------------------------------------------------------
+# data manipulation ------------------------------------------------------------
 ## generate a data frame to fit model
 willAge3Fit.dat <- data.frame(
   willAge3_32yr = head(
@@ -18,7 +18,7 @@ willAge3Pred.dat <- tail(
   ,1
 )
 
-# fit model and generate prediction ---------------------------------------
+# fit model and generate prediction --------------------------------------------
 ## create character string defining current model
 ## (string will have to be changed manually if parameterization changes)
 willAge3Mod.name <- "Willamette Age-3"
@@ -26,7 +26,8 @@ willAge3Mod.name <- "Willamette Age-3"
 ## fit OLS to define initial MCMC values
 ### fit OLS
 willAge3Init.mod <- lm(
-  log(willAge3_32yr)~log(willAge2_ret),
+  log(willAge3_32yr) ~
+    log(willAge2_ret),
   data=willAge3Fit.dat
 )
 
@@ -43,23 +44,23 @@ willAge3Init.betaSE <- coef(
 
 ## create data list to fit model and generate prediction
 willAge3Mod.dat <- list(
-  willAge3_32yr=as.numeric(
+  willAge3_32yr = as.numeric(
     c(
       log(willAge3Fit.dat$willAge3_32yr),
       "NA"
     )
   ),
   
-  willAge2_ret=log(
+  willAge2_ret = log(
     c(
       willAge3Fit.dat$willAge2_ret,
       willAge3Pred.dat
     )
   ),
   
-  nObs=length(
+  nObs = length(
     willAge3Fit.dat$willAge2_ret
-  )+1,
+  ) + 1,
   
   Y = c(
     head(
@@ -73,6 +74,7 @@ willAge3Mod.dat <- list(
     willChsHWprop.dat,
     -1
   )[,4][1],
+  
   nHJWobs = length(
     head(
       willChsHWprop.dat,
@@ -90,60 +92,60 @@ inits.willAge3 <- function()
   list(
     beta.willAge3 = runif(
       1,
-      willAge3Init.beta-(5*willAge3Init.betaSE),
-      willAge3Init.beta+(5*willAge3Init.betaSE)
+      willAge3Init.beta - (5*willAge3Init.betaSE),
+      willAge3Init.beta + (5*willAge3Init.betaSE)
     )
   )
 }
 
 ## specify model
-cat(
+cat('
   model {
     # observation model
     for (i in 1:nObs){
       ## liklihood
-      willAge3_32yr[i]~dnorm(muWillAge3_32yr[i],tau.e.willAge3)
+      willAge3_32yr[i] ~ dnorm(muWillAge3_32yr[i],tau.e.willAge3)
       
       ## age3:age2 predictions in log space
-      muWillAge3_32yr[i] <- alpha.willAge3[i]+
-        beta.willAge3*(willAge2_ret[i]-mean(willAge2_ret[]))
+      muWillAge3_32yr[i] <- alpha.willAge3[i] +
+        beta.willAge3 * (willAge2_ret[i] - mean(willAge2_ret[]))
       
       ## age return predictions on the arithmetic scale
-      pred_willAge3[i] <- exp(muWillAge3_32yr[i])*exp(willAge2_ret[i])
+      pred_willAge3[i] <- exp(muWillAge3_32yr[i]) * exp(willAge2_ret[i])
     }
     
     # process model
     for (i in 2:nObs){
       ## define time-varying alpha parameter
-      alpha.willAge3[i] <- alpha.willAge3[i-1]+W.willAge3[i]
+      alpha.willAge3[i] <- alpha.willAge3[i-1] + W.willAge3[i]
       
       # prior for annual deviation among alphas
-      W.willAge3[i]~dnorm(0,tau.w.willAge3)
+      W.willAge3[i] ~ dnorm(0,tau.w.willAge3)
     }
     
     # hatchery proportion model
     # likelihood
-   X[1] ~ dnorm(X0 + u, inv.q);
-   EY[1] <- X[1];
-   Y[1] ~ dnorm(EY[1], inv.r);
-   for(t in 2:nHWobs) {
+    X[1] ~ dnorm(X0 + u, inv.q);
+    EY[1] <- X[1];
+    Y[1] ~ dnorm(EY[1], inv.r);
+    for(t in 2:nHWobs) {
       X[t] ~ dnorm(X[t-1] + u, inv.q);
       EY[t] <- X[t];
       Y[t] ~ dnorm(EY[t], inv.r); 
-   }
+    }
     
     # priors and definitions
     ## define alpha at t=1
-    alpha.willAge3[1]~dnorm(0,0.001)
+    alpha.willAge3[1] ~ dnorm(0,0.001)
     
     ## beta prior
-    beta.willAge3~dnorm(0,0.001)
+    beta.willAge3 ~ dnorm(0,0.001)
     
     ## prior for observation variance
-    sig.e.willAge3~dunif(0,1)
+    sig.e.willAge3 ~ dunif(0,1)
     
     ## process variance
-    sig.w.willAge3~dunif(0,1)
+    sig.w.willAge3 ~ dunif(0,1)
     
     ## observation precision
     tau.e.willAge3 <- 1/pow(sig.e.willAge3,2)
@@ -159,36 +161,42 @@ cat(
     r <- 1/inv.r
     X0 ~ dnorm(Y1, 0.001)
     
-    predHat_willAge3 <- pred_willAge3[nObs]-(pred_willAge3[nObs]*EY[nHWobs])
-  },
-  file={willAge3.mod <- tempfile()})
+    predHat_willAge3 <- pred_willAge3[nObs] - (pred_willAge3[nObs]*EY[nHWobs])
+  }',
+    file={willAge3.mod <- tempfile()})
 
 ## define parameters to monitor
-params.willAge3 <- c("alpha.willAge3",
-                     "beta.willAge3",
-                     "sig.e.willAge3",
-                     "sig.w.willAge3",
-                     "muWillAge3_32yr",
-                     "pred_willAge3",
-                     "q",
-                     "r",
-                     "EY",
-                     "u",
-                     "predHat_willAge3")
+params.willAge3 <- c(
+  "alpha.willAge3",
+  "beta.willAge3",
+  "sig.e.willAge3",
+  "sig.w.willAge3",
+  "muWillAge3_32yr",
+  "pred_willAge3",
+  "q",
+  "r",
+  "EY",
+  "u",
+  "predHat_willAge3"
+)
 
 ## call jags
 start <- Sys.time()
-fit.willAge3 <- jags.parallel(data = willAge3Mod.dat,
-                              # inits = inits.willAge3,  # see above
-                              parameters.to.save = params.willAge3,
-                              model.file = willAge3.mod,
-                              n.chains = 3,
-                              n.iter = 250000,
-                              n.burnin = 25000,
-                              n.thin = 10,
-                              n.cluster = 3,
-                              jags.seed = 123,
-                              DIC = F)
+
+fit.willAge3 <- jags.parallel(
+  data = willAge3Mod.dat,
+  # inits = inits.willAge3,  # see above
+  parameters.to.save = params.willAge3,
+  model.file = willAge3.mod,
+  n.chains = 3,
+  n.iter = 250000,
+  n.burnin = 25000,
+  n.thin = 10,
+  n.cluster = 3,
+  jags.seed = 123,
+  DIC = F
+)
+
 stop <- Sys.time()
 duration <- stop-start
 print(duration)
@@ -207,14 +215,16 @@ pred.mcmc.willAge3 <- mcmc.willAge3[, paste(
 
 ### summarize output for current prediction
 #### create data frame to store output
-willAge3.pred.out<-data.frame(model=character(),
-                              mean.pred.willAge3=numeric(),
-                              lwrHDI.willAge3=numeric(),
-                              UprHDI.willAge3=numeric(),
-                              stringsAsFactors = FALSE)
+willAge3.pred.out <- data.frame(
+  model = character(),
+  mean.pred.willAge3 = numeric(),
+  lwrHDI.willAge3 = numeric(),
+  UprHDI.willAge3 = numeric(),
+  stringsAsFactors = FALSE
+)
 
 #### append output to new data frame (from above)
-willAge3.pred.out[1,]<-c(
+willAge3.pred.out[1,] <- c(
   willAge3Mod.name,
   round(
     mean(
@@ -226,7 +236,7 @@ willAge3.pred.out[1,]<-c(
   round(
     hdi(
       pred.mcmc.willAge3,
-      credMass=0.95
+      credMass = 0.95
     )[1],
     0
     
@@ -235,7 +245,7 @@ willAge3.pred.out[1,]<-c(
   round(
     hdi(
       pred.mcmc.willAge3,
-      credMass=0.95)[2]
+      credMass = 0.95)[2]
     ,0
   )
 )
@@ -245,17 +255,18 @@ predHat.mcmc.willAge3 <- mcmc.willAge3[, "predHat_willAge3"]
 
 #### create data frame to store output for hatchery predictions
 willAge3.predHat.out<-data.frame(
-  model=character(),
-  mean.pred.willAge3=numeric(),
-  lwrHDI.willAge3=numeric(),
-  UprHDI.willAge3=numeric(),
+  model = character(),
+  mean.pred.willAge3 = numeric(),
+  lwrHDI.willAge3 = numeric(),
+  UprHDI.willAge3 = numeric(),
   stringsAsFactors = FALSE
 )
 
 #### append output to new data frame (from above)
-willAge3.predHat.out[1,]<-c(
+willAge3.predHat.out[1,] <- c(
   paste(
-    willAge3Mod.name,"hatchery"
+    willAge3Mod.name,
+    "hatchery"
   ),
   
   round(
@@ -264,10 +275,11 @@ willAge3.predHat.out[1,]<-c(
     ),
     0
   ),
+  
   round(
     hdi(
       predHat.mcmc.willAge3,
-      credMass=0.95
+      credMass = 0.95
     )[1],
     0
   ),
@@ -275,7 +287,7 @@ willAge3.predHat.out[1,]<-c(
   round(
     hdi(
       predHat.mcmc.willAge3,
-      credMass=0.95
+      credMass = 0.95
     )[2],
     0
   )
