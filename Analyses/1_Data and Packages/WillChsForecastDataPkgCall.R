@@ -10,6 +10,9 @@ if (!require(install.load)) {
 
 install.load::install_load(packages)
 
+# call exogenous functions -----------------------------------------------------
+source("Exogenous functions\\round_fun.R")
+
 # call raw data ----------------------------------------------------------------
 ## input file path
 inPath <- "Input\\Input Data\\WillClackRawData.xlsx"
