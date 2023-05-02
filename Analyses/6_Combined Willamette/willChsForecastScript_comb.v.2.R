@@ -760,14 +760,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willAge3Mod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willAge3
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge3,
       credMass = 0.95
@@ -775,7 +775,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge3,
       credMass = 0.95
@@ -789,14 +789,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willAge4Mod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willAge4
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge4,
       credMass = 0.95
@@ -804,7 +804,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge4,
       credMass = 0.95
@@ -818,14 +818,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willAge5Mod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willAge5
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge5,
       credMass = 0.95
@@ -833,7 +833,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge5,
       credMass = 0.95
@@ -847,14 +847,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willAge6Mod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willAge6
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge6,
       credMass = 0.95
@@ -862,7 +862,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAge6,
       credMass = 0.95
@@ -876,14 +876,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willAdultMod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willAdult
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAdult,
       credMass = 0.95
@@ -891,7 +891,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willAdult,
       credMass = 0.95
@@ -905,14 +905,14 @@ willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c(
   willTotalMod.name,
-  round(
+  round_fun(
     mean(
       pred.mcmc.willTotal
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willTotal,
       credMass = 0.95
@@ -920,7 +920,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       pred.mcmc.willTotal,
       credMass = 0.95
@@ -937,14 +937,14 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willAge3
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge3,
       credMass = 0.95
@@ -952,7 +952,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge3,
       credMass = 0.95
@@ -969,14 +969,14 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willAge4
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge4,
       credMass = 0.95
@@ -984,7 +984,7 @@ willComb.pred.out[nrow(
     ,0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge4,
       credMass = 0.95
@@ -1001,13 +1001,13 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willAge5
     ),
     0
   ),
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge5,
       credMass = 0.95
@@ -1015,7 +1015,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge5,
       credMass = 0.95
@@ -1032,14 +1032,14 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willAge6
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge6,
       credMass = 0.95
@@ -1047,7 +1047,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAge6,
       credMass = 0.95
@@ -1064,14 +1064,14 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willAdult
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAdult,
       credMass = 0.95
@@ -1079,7 +1079,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willAdult,
       credMass = 0.95
@@ -1096,14 +1096,14 @@ willComb.pred.out[nrow(
         "Hatchery"
   ),
   
-  round(
+  round_fun(
     mean(
       predHat.mcmc.willTotal
     ),
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willTotal,
       credMass = 0.95
@@ -1111,7 +1111,7 @@ willComb.pred.out[nrow(
     0
   ),
   
-  round(
+  round_fun(
     hdi(
       predHat.mcmc.willTotal,
       credMass = 0.95
@@ -1124,14 +1124,14 @@ willComb.pred.out[nrow(
 willComb.pred.out[nrow(
   willComb.pred.out
 ) + 1,] <- c("Clip Rate",
-             round(
+             round_fun(
                mean(
                  predHat.mcmc.willClpRt
                ),
                4
              ),
              
-             round(
+             round_fun(
                hdi(
                  predHat.mcmc.willClpRt,
                  credMass = 0.95
@@ -1139,7 +1139,7 @@ willComb.pred.out[nrow(
                4
              ),
              
-             round(
+             round_fun(
                hdi(
                  predHat.mcmc.willClpRt,
                  credMass = 0.95
