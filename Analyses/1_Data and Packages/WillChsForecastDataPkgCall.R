@@ -24,6 +24,8 @@ willChsRet.dat <- read.xlsx(
   colNames = TRUE
 )
 
+save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
+
 ## Willamette covariate data
 willChsCov.dat <- read.xlsx(
   inPath,
@@ -31,12 +33,16 @@ willChsCov.dat <- read.xlsx(
   colNames = TRUE
 )
 
+save(willChsCov.dat, file='Input\\Input Data\\willChsCov.rda')
+
 ## Willamette HW proportion data
 willChsHWprop.dat <- read.xlsx(
   inPath,
   sheet = 3,
   colNames = TRUE
 )
+
+save(willChsHWprop.dat, file='Input\\Input Data\\willChsHWprop.rda')
 
 ## Clackamas return data
 ### call raw data
@@ -71,3 +77,4 @@ clackChsManip.dat <- cbind(
   clackChsTot.dat
 )
 
+save(clackChsManip.dat, file='Input\\Input Data\\clackChsManip.rda')
