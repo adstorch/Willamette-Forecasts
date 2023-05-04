@@ -16,6 +16,7 @@ source("Exogenous functions\\round_fun.R")
 
 # call data --------------------------------------------------------------------
 load(file='Input\\Input Data\\willChsRet.rda')
+load(file='Input\\Input Data\\clackChsRet.rda')
 
 ## set current return year (this has to be entered manually)
 curr_year <- 2023
@@ -52,26 +53,34 @@ willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
 willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
 
-## create sum variable
+## save backup of updated .rda
+save(willChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
+                                'Willamette\\',
+                                curr_year,
+                                'willChsRet.rda',
+                                sep = "")
+)
+
+## save working updated .rda (this will overwrite existing file)
+save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
+
+## create sum variable for current analysis
 willChsRet.dat$sum23 <- 
   willChsRet.dat$age3_col +
   willChsRet.dat$age2_will
 
-## save backup of updated .rda
-
-
-# call raw data ----------------------------------------------------------------
+## call raw data ---------------------------------------------------------------
 ## input file path
-inPath <- "Input\\Input Data\\WillClackRawData.xlsx"
-
-## Willamette return data
-willChsRet.dat <- read.xlsx(
-  inPath,
-  sheet = 1,
-  colNames = TRUE
-)
-
-save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
+# inPath <- "Input\\Input Data\\WillClackRawData.xlsx"
+# 
+# ## Willamette return data
+# willChsRet.dat <- read.xlsx(
+#   inPath,
+#   sheet = 1,
+#   colNames = TRUE
+# )
+# # 
+# save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
 
 ## Willamette covariate data
 willChsCov.dat <- read.xlsx(
@@ -82,22 +91,52 @@ willChsCov.dat <- read.xlsx(
 
 save(willChsCov.dat, file='Input\\Input Data\\willChsCov.rda')
 
-## Willamette HW proportion data
-willChsHWprop.dat <- read.xlsx(
-  inPath,
-  sheet = 3,
-  colNames = TRUE
-)
-
-save(willChsHWprop.dat, file='Input\\Input Data\\willChsHWprop.rda')
+# ## Willamette HW proportion data
+# clackChsRet.dat <- read.xlsx(
+#   inPath,
+#   sheet = 4,
+#   colNames = TRUE
+# )
+# 
+# save(clackChsRet.dat, file='Input\\Input Data\\clackChsRet.rda')
 
 ## Clackamas return data
-### call raw data
-clackChsRet.dat <- read.xlsx(
-  inPath,
-  sheet = 4,
-  colNames = TRUE
+#### enter return estimates from current run reconstruction
+age3_clack <- 290
+age4_clack <- 5796
+age5_clack <- 346
+age6_clack <- 0
+
+time.clack <- data.frame(brd_yr = curr_year - 3)
+
+## append current years to loaded data frame
+clackChsRet.dat <- rbind(
+  clackChsRet.dat,
+  setNames(
+    c(
+      time.clack,
+      rep(NA, 4)
+    ),
+    names(clackChsRet.dat)
+  )
 )
+
+## insert new values into data frame
+clackChsRet.dat[nrow(clackChsRet.dat), 2] = age3_clack
+clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = age4_clack
+clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
+clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
+
+## save backup of updated .rda
+save(clackChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
+                                'Clackamas\\',
+                                curr_year,
+                                'clackChsRet.rda',
+                                sep = "")
+)
+
+## save working updated .rda (this will overwrite existing file)
+save(clackChsRet.dat, file='Input\\Input Data\\clackChsRet.rda')
 
 ### sum diagonals to calculate total returns in year n
 clackChsTot.dat <- data.frame(
@@ -119,9 +158,7 @@ clackChsTot.dat <- data.frame(
 clackChsTot.dat[1:3,] <- 2200
 
 ### create a combined ('manipulated') data frame
-clackChsManip.dat <- cbind(
+clackChsRet.dat <- cbind(
   clackChsRet.dat,
   clackChsTot.dat
 )
-
-save(clackChsManip.dat, file='Input\\Input Data\\clackChsManip.rda')
