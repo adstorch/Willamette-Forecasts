@@ -13,6 +13,53 @@ install.load::install_load(packages)
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
 
+
+# call data --------------------------------------------------------------------
+load(file='Input\\Input Data\\willChsRet.rda')
+
+## set current return year (this has to be entered manually)
+curr_year <- 2023
+
+time <- data.frame(brd_yr = curr_year - 2,
+                   mig_yr = curr_year
+)
+
+## enter return estimates from current run reconstruction
+age3_col <- 2123
+age4_col <- 40123
+age5_col <- 20123
+age6_col <- 50
+age3_will <- 1572
+age2_will <- 3000
+
+## append current years to loaded data frame
+willChsRet.dat <- rbind(
+  willChsRet.dat,
+  setNames(
+    c(
+      time,
+      rep(NA, 6)
+    ),
+    names(willChsRet.dat)
+  )
+)
+
+## insert new values into data frame
+willChsRet.dat[nrow(willChsRet.dat) - 1, 3] = age3_col
+willChsRet.dat[nrow(willChsRet.dat) - 2, 4] = age4_col
+willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = age5_col
+willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
+willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
+willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
+
+## create sum variable
+willChsRet.dat$sum23 <- 
+  willChsRet.dat$age3_col +
+  willChsRet.dat$age2_will
+
+## save backup of updated .rda
+
+
 # call raw data ----------------------------------------------------------------
 ## input file path
 inPath <- "Input\\Input Data\\WillClackRawData.xlsx"
