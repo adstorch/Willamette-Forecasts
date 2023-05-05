@@ -17,6 +17,7 @@ source("Exogenous functions\\round_fun.R")
 # load existing file -----------------------------------------------------------
 load(file='Input\\Input Data\\willChsRet.rda')
 load(file='Input\\Input Data\\clackChsRet.rda')
+load(file='Input\\Input Data\\willChsHWprop.rda')
 
 # update existing file(s) ------------------------------------------------------
 ## set current return year (this applies to all datasets to be updated)
@@ -116,20 +117,6 @@ save(willChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
 save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
 
 
-
-## call raw data ---------------------------------------------------------------
-## input file path
-# inPath <- "Input\\Input Data\\WillClackRawData.xlsx"
-# 
-# ## Willamette return data
-# willChsRet.dat <- read.xlsx(
-#   inPath,
-#   sheet = 1,
-#   colNames = TRUE
-# )
-# # 
-# save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
-
 # ## Willamette covariate data
 # willChsCov.dat <- read.xlsx(
 #   inPath,
@@ -139,14 +126,75 @@ save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
 
 # save(willChsCov.dat, file='Input\\Input Data\\willChsCov.rda')
 
-# ## Willamette HW proportion data
-# clackChsRet.dat <- read.xlsx(
-#   inPath,
-#   sheet = 4,
-#   colNames = TRUE
-# )
-# 
-# save(clackChsRet.dat, file='Input\\Input Data\\clackChsRet.rda')
+### Willamette HW proportion data
+#### create time variable
+time.hwProp <- data.frame(
+  p_yr = curr_year - 1,
+  ret_yr = curr_year
+)
+
+#### define new data from big sheets or other sources
+#### (1) navigate to spreadsheet containing age-specific data
+#### (2) copy (ctrl+c) age-specific data
+#### (3) run line (below) corresponding to the age-class of interest
+#### for example, to define the "age3_clack" variable, open the current big sheet,
+#### find the estimate for age-3 spring Chinook entering the Columbia,
+#### copy (ctrl+c) that value to the clipboard,
+#### run the line below corresponding to "age3_clack"
+p_yr_ret <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet curr. year - 1 (run entering Columbia)
+
+clp_rt_num <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet curr. year (adult wild run entering Columbia)
+
+clp_rt_denom <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet curr. year (total adult run entering Columbia)
+
+clp_rt <- clp_rt_num/clp_rt_denom
+
+#### append current year to loaded data frame
+willChsHWprop.dat <- rbind(
+  willChsHWprop.dat,
+  setNames(
+    c(
+      time.hwProp,
+      rep(NA, 2)
+    ),
+    names(willChsHWprop.dat)
+  )
+)
+
+#### insert new values into data frame
+willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
+willChsHWprop.dat[nrow(willChsHWprop.dat) - 1, 4] = clp_rt
+
+#### save backup of updated .rda
+save(willChsHWprop.dat, file=paste('Input\\Input Data\\Backup\\',
+                                 'Hatchery_Wild Proportion\\',
+                                 curr_year,
+                                 'willChsHWprop.rda',
+                                 sep = "")
+)
+
+#### save working updated .rda (this will overwrite existing file)
+save(willChsHWprop.dat, file='Input\\Input Data\\willChsHWprop.rda')
+
+
 
 ### Clackamas return data
 #### create time variable
@@ -223,7 +271,7 @@ save(clackChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
 #### save working updated .rda (this will overwrite existing file)
 save(clackChsRet.dat, file='Input\\Input Data\\clackChsRet.rda')
 
-# manipulated existing or updated dataset --------------------------------------
+# manipulate existing or updated dataset --------------------------------------
 ## Willamette return
 ### create sum variable for current analysis
 willChsRet.dat$sum23 <- 
