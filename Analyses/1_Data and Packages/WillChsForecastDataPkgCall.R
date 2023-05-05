@@ -194,8 +194,6 @@ save(willChsHWprop.dat, file=paste('Input\\Input Data\\Backup\\',
 #### save working updated .rda (this will overwrite existing file)
 save(willChsHWprop.dat, file='Input\\Input Data\\willChsHWprop.rda')
 
-
-
 ### Clackamas return data
 #### create time variable
 time.clack <- data.frame(
