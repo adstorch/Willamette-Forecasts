@@ -2,7 +2,8 @@
 packages <- c("openxlsx",
               "ggplot2",
               "R2jags",
-              "HDInterval")
+              "HDInterval",
+              "clipr")
 
 if (!require(install.load)) {
   install.packages("install.load")
@@ -27,13 +28,61 @@ time <- data.frame(brd_yr = curr_year - 2,
                    mig_yr = curr_year
 )
 
-#### enter return estimates from current run reconstruction
-age3_col <- 2123
-age4_col <- 40123
-age5_col <- 20123
-age6_col <- 50
-age3_will <- 1572
-age2_will <- 3000
+#### define new data from big sheets or other sources
+#### (1) navigate to spreadsheet containing age-specific data
+#### (2) copy (ctrl+c) age-specific data
+#### (3) run line (below) corresponding to the age-class of interest
+#### for example, to define the "age3_col" variable, open the current big sheet,
+#### find the estimate for age-3 spring Chinook entering the Columbia,
+#### copy (ctrl+c) that value to the clipboard,
+#### run the line below corresponding to "age3_col"
+
+age3_col <- as.numeric(
+  gsub(",",
+       "",
+       read_clip()
+  )
+) # from big sheet (run entering Columbia)
+
+age4_col <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Columbia)
+
+age5_col <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Columbia)
+
+age6_col <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Columbia)
+
+age3_will <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Columbia)
+
+age2_will <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from Will. Falls monthly counts
 
 #### append current year to loaded data frame
 willChsRet.dat <- rbind(
@@ -105,11 +154,45 @@ time.clack <- data.frame(
   brd_yr = curr_year - 3
   )
 
-#### enter return estimates from current run reconstruction
-age3_clack <- 290
-age4_clack <- 5796
-age5_clack <- 346
-age6_clack <- 0
+#### define new data from big sheets or other sources
+#### (1) navigate to spreadsheet containing age-specific data
+#### (2) copy (ctrl+c) age-specific data
+#### (3) run line (below) corresponding to the age-class of interest
+#### for example, to define the "age3_clack" variable, open the current big sheet,
+#### find the estimate for age-3 spring Chinook entering the Clackamas,
+#### copy (ctrl+c) that value to the clipboard,
+#### run the line below corresponding to "age3_clack"
+age3_clack <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Clackamas)
+
+age4_clack <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Clackamas)
+       
+age5_clack <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Clackamas)
+       
+age6_clack <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)  # from big sheet (run entering Clackamas)
 
 #### append current years to loaded data frame
 clackChsRet.dat <- rbind(
