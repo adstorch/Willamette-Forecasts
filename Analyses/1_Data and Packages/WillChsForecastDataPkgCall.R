@@ -15,9 +15,9 @@ install.load::install_load(packages)
 source("Exogenous functions\\round_fun.R")
 
 # load existing file -----------------------------------------------------------
-load(file='Input\\Input Data\\willChsRet.rda')
-load(file='Input\\Input Data\\clackChsRet.rda')
-load(file='Input\\Input Data\\willChsHWprop.rda')
+load(file='Input\\~Input Data\\willChsRet.rda')
+load(file='Input\\~Input Data\\clackChsRet.rda')
+load(file='Input\\~Input Data\\willChsHWprop.rda')
 
 # update existing file(s) ------------------------------------------------------
 ## set current return year (this applies to all datasets to be updated)
@@ -33,9 +33,9 @@ time <- data.frame(brd_yr = curr_year - 2,
 #### (1) navigate to spreadsheet containing age-specific data
 #### (2) copy (ctrl+c) age-specific data
 #### (3) run line (below) corresponding to the age-class of interest
-#### for example, to define the "age3_col" variable, open the current big sheet,
-#### find the estimate for age-3 spring Chinook entering the Columbia,
-#### copy (ctrl+c) that value to the clipboard,
+#### for example, to define the "age3_col" variable, open the current
+### big sheet, find the estimate for age-3 spring Chinook entering the
+#### Columbia, copy (ctrl+c) that value to the clipboard,
 #### run the line below corresponding to "age3_col"
 
 age3_col <- as.numeric(
@@ -106,7 +106,7 @@ willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
 
 #### save backup of updated .rda
-save(willChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
+save(willChsRet.dat, file=paste('Input\\~Input Data\\Backup\\Return\\',
                                 'Willamette\\',
                                 curr_year,
                                 'willChsRet.rda',
@@ -114,7 +114,7 @@ save(willChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
 )
 
 #### save working updated .rda (this will overwrite existing file)
-save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
+save(willChsRet.dat, file='Input\\~Input Data\\willChsRet.rda')
 
 
 # ## Willamette covariate data
@@ -124,7 +124,7 @@ save(willChsRet.dat, file='Input\\Input Data\\willChsRet.rda')
 #   colNames = TRUE
 # )
 
-# save(willChsCov.dat, file='Input\\Input Data\\willChsCov.rda')
+# save(willChsCov.dat, file='Input\\~Input Data\\willChsCov.rda')
 
 ### Willamette HW proportion data
 #### create time variable
@@ -134,13 +134,13 @@ time.hwProp <- data.frame(
 )
 
 #### define new data from big sheets or other sources
-#### (1) navigate to spreadsheet containing age-specific data
-#### (2) copy (ctrl+c) age-specific data
-#### (3) run line (below) corresponding to the age-class of interest
-#### for example, to define the "age3_clack" variable, open the current big sheet,
-#### find the estimate for age-3 spring Chinook entering the Columbia,
-#### copy (ctrl+c) that value to the clipboard,
-#### run the line below corresponding to "age3_clack"
+#### (1) navigate to spreadsheet containing variable x record combination
+#### (2) copy (ctrl+c) record
+#### (3) run line (below) corresponding to the variable of interest
+#### for example, to define the "p_yr_ret" variable, open the big sheet from
+### curr. year - 1, find the estimate for "Total" spring Chinook entering the
+#### Columbia, copy (ctrl+c) that value to the clipboard,
+#### run the line below corresponding to "p_yr_ret"
 p_yr_ret <- as.numeric(
   gsub(
     ",",
@@ -184,7 +184,7 @@ willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat) - 1, 4] = clp_rt
 
 #### save backup of updated .rda
-save(willChsHWprop.dat, file=paste('Input\\Input Data\\Backup\\',
+save(willChsHWprop.dat, file=paste('Input\\~Input Data\\Backup\\',
                                  'Hatchery_Wild Proportion\\',
                                  curr_year,
                                  'willChsHWprop.rda',
@@ -192,7 +192,7 @@ save(willChsHWprop.dat, file=paste('Input\\Input Data\\Backup\\',
 )
 
 #### save working updated .rda (this will overwrite existing file)
-save(willChsHWprop.dat, file='Input\\Input Data\\willChsHWprop.rda')
+save(willChsHWprop.dat, file='Input\\~Input Data\\willChsHWprop.rda')
 
 ### Clackamas return data
 #### create time variable
@@ -204,9 +204,9 @@ time.clack <- data.frame(
 #### (1) navigate to spreadsheet containing age-specific data
 #### (2) copy (ctrl+c) age-specific data
 #### (3) run line (below) corresponding to the age-class of interest
-#### for example, to define the "age3_clack" variable, open the current big sheet,
-#### find the estimate for age-3 spring Chinook entering the Clackamas,
-#### copy (ctrl+c) that value to the clipboard,
+#### for example, to define the "age3_clack" variable, open the current
+#### big sheet, find the estimate for age-3 spring Chinook entering the
+#### Clackamas, copy (ctrl+c) that value to the clipboard,
 #### run the line below corresponding to "age3_clack"
 age3_clack <- as.numeric(
   gsub(
@@ -259,7 +259,7 @@ clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
 
 #### save backup of updated .rda
-save(clackChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
+save(clackChsRet.dat, file=paste('Input\\~Input Data\\Backup\\Return\\',
                                 'Clackamas\\',
                                 curr_year,
                                 'clackChsRet.rda',
@@ -267,9 +267,9 @@ save(clackChsRet.dat, file=paste('Input\\Input Data\\Backup\\Return\\',
 )
 
 #### save working updated .rda (this will overwrite existing file)
-save(clackChsRet.dat, file='Input\\Input Data\\clackChsRet.rda')
+save(clackChsRet.dat, file='Input\\~Input Data\\clackChsRet.rda')
 
-# manipulate existing or updated dataset --------------------------------------
+# manipulate existing or updated dataset ---------------------------------------
 ## Willamette return
 ### create sum variable for current analysis
 willChsRet.dat$sum23 <- 
