@@ -117,12 +117,23 @@ save(willChsRet.dat, file=paste('Input\\~Input Data\\Backup\\Return\\',
 save(willChsRet.dat, file='Input\\~Input Data\\willChsRet.rda')
 
 
-# ## Willamette covariate data
-# willChsCov.dat <- read.xlsx(
-#   inPath,
-#   sheet = 2,
-#   colNames = TRUE
-# )
+
+## Willamette covariate data
+willChsCov.dat <- read.xlsx(
+  "Input\\~Input Data\\WillClackRawData.xlsx",
+  sheet = 2,
+  colNames = TRUE
+)
+
+noaa_ranks <- as.numeric(
+  gsub(
+    ",",
+    "",
+    read_clip()
+  )
+)
+
+noaa_ranks <- t(read_clip())
 
 # save(willChsCov.dat, file='Input\\~Input Data\\willChsCov.rda')
 
