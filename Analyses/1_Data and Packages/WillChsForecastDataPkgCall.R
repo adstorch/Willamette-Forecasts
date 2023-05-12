@@ -118,24 +118,80 @@ save(willChsRet.dat, file='Input\\~Input Data\\willChsRet.rda')
 
 
 
-## Willamette covariate data
-willChsCov.dat <- read.xlsx(
-  "Input\\~Input Data\\WillClackRawData.xlsx",
-  sheet = 2,
-  colNames = TRUE
+### Willamette covariate data
+#### copy "Rank of the mean rank" data and run string below
+noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### copy "Mean of ranks" data and run string below
+mu_noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### copy "Nearshore Ichthyoplankton Log(mg C 1,000 m-3; Jan-Mar)" data 
+#### and run string below
+ichthy_biom <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### copy "Principal Component scores (PC1)" data and run string below
+pc1 <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### spring pdo data are from the internet and then manipulated as below
+sp_pdo <- subset(
+  data.frame(
+    year = read.table(
+      "https://www.ncei.noaa.gov/pub/data/cmb/ersst/v5/index/ersst.v5.pdo.dat",
+      header=TRUE, skip = 1)[,1],
+    sp_pdo = rowMeans(
+      subset(
+        read.table(
+          "https://www.ncei.noaa.gov/pub/data/cmb/ersst/v5/index/ersst.v5.pdo.dat",
+          header=TRUE, skip = 1
+        ),
+        select = c(May, Jun, Jul, Aug)
+      ),
+      na.rm = TRUE
+    )
+  ),
+  year >= 1998
 )
 
-noaa_ranks <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
+#### copy "Physical Spring Trans. UI based (day of year)" data
+#### and run string below
+sp_trans <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### copy "Copepod richness anom.(no. species; May-Sept)" data and 
+#### run string below
+cope_rich <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+#### conmbine time series
+willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
+                             mig_yr = seq(1998,curr_year,1),
+                             noaa_ranks = noaa_ranks,
+                             mu_noaa_ranks = mu_noaa_ranks,
+                             ichthy_biom = ichthy_biom,
+                             pc1 = pc1,
+                             sp_pdo = sp_pdo[,2],
+                             sp_trans = sp_trans,
+                             cope_rich = cope_rich)
+
+willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
+                              mig_yr = seq(1971,1997,1),
+                              noaa_ranks = NA,
+                              mu_noaa_ranks = NA,
+                              ichthy_biom = NA,
+                              pc1 = NA,
+                              sp_pdo = NA,
+                              sp_trans = NA,
+                              cope_rich = NA)
+
+willChsCov.dat <- rbind(willChsCovPH.dat,
+                        willChsCov.dat)
+
+
+#### save backup .rda
+save(willChsCov.dat, file=paste('Input\\~Input Data\\Backup\\',
+                                'Ocean Covariates\\',
+                                curr_year,
+                                'willChsCov.rda',
+                                sep = "")
 )
-
-noaa_ranks <- t(read_clip())
-
-# save(willChsCov.dat, file='Input\\~Input Data\\willChsCov.rda')
 
 ### Willamette HW proportion data
 #### create time variable
