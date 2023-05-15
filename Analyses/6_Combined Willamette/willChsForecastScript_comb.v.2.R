@@ -1123,7 +1123,7 @@ willComb.pred.out[nrow(
 ### append output for predicted clip rate to new data frame (from above)
 willComb.pred.out[nrow(
   willComb.pred.out
-) + 1,] <- c("Clip Rate",
+) + 1,] <- c("Non-clipped Rate",
              round_fun(
                mean(
                  predHat.mcmc.willClpRt

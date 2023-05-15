@@ -21,7 +21,15 @@ load(file='Input\\~Input Data\\willChsHWprop.rda')
 
 # update existing file(s) ------------------------------------------------------
 ## set current return year (this applies to all datasets to be updated)
-curr_year <- 2023
+curr_year <- 2022
+
+
+willChsHWprop.dat <- read.xlsx("Input\\~Input Data\\WillClackRawData.xlsx",
+                            sheet = 3,
+                            colNames = TRUE)
+
+willChsHWprop.dat <- head(willChsHWprop.dat,-1)
+
 
 ### Willamette return data
 #### create time variable
@@ -167,7 +175,7 @@ willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              mu_noaa_ranks = mu_noaa_ranks,
                              ichthy_biom = ichthy_biom,
                              pc1 = pc1,
-                             sp_pdo = sp_pdo[,2],
+                             sp_pdo = sp_pdo[,2], ## NEED TO CHANGES THIS BACK
                              sp_trans = sp_trans,
                              cope_rich = cope_rich)
 
@@ -222,7 +230,7 @@ clp_rt_num <- as.numeric(
     "",
     read_clip()
   )
-)  # from big sheet curr. year (adult wild run entering Columbia)
+)  # from big sheet curr. year ("Wild" run entering Columbia)
 
 clp_rt_denom <- as.numeric(
   gsub(
@@ -230,7 +238,7 @@ clp_rt_denom <- as.numeric(
     "",
     read_clip()
   )
-)  # from big sheet curr. year (total adult run entering Columbia)
+)  # from big sheet curr. year ("Total" run entering Columbia)
 
 clp_rt <- clp_rt_num/clp_rt_denom
 
@@ -248,7 +256,7 @@ willChsHWprop.dat <- rbind(
 
 #### insert new values into data frame
 willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
-willChsHWprop.dat[nrow(willChsHWprop.dat) - 1, 4] = clp_rt
+willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
 
 #### save backup of updated .rda
 save(willChsHWprop.dat, file=paste('Input\\~Input Data\\Backup\\',
