@@ -14,7 +14,6 @@ install.load::install_load(packages)
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
 
-
 # set current RETURN year (this applies to all datasets to be updated ----------
 curr_year <- 2022
 
@@ -274,7 +273,7 @@ willChsHWprop.dat <- rbind(
   setNames(
     c(
       time.hwProp,
-      rep(NA, 2)
+      rep(NA, 3)
     ),
     names(willChsHWprop.dat)
   )
@@ -283,6 +282,7 @@ willChsHWprop.dat <- rbind(
 ### insert new values into data frame
 willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
+willChsHWprop.dat[nrow(willChsHWprop.dat), 5] = clp_rt_num
 
 ### save current year .rda
 save(willChsHWprop.dat,
@@ -350,7 +350,7 @@ clackChsRet.dat <- rbind(
   setNames(
     c(
       time.clack,
-      rep(NA, 4)
+      rep(NA, 5)
     ),
     names(clackChsRet.dat)
   )
@@ -361,6 +361,8 @@ clackChsRet.dat[nrow(clackChsRet.dat), 2] = age3_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = age4_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
+clackChsRet.dat[nrow(clackChsRet.dat), 6] = age3_clack + age4_clack +
+  age5_clack + age6_clack
 
 ### save current year .rda
 save(clackChsRet.dat,
@@ -375,7 +377,7 @@ save(clackChsRet.dat,
 # ### save working updated .rda (this will overwrite existing file)
 # save(clackChsRet.dat, file='Input\\~Input Data\\clackChsRet.rda')
 
-# # manipulate existing or updated dataset ---------------------------------------
+# # manipulate existing or updated dataset -------------------------------------
 # ## Willamette return
 # ### create sum variable for current analysis
 # willChsRet.dat$sum23 <- 
@@ -385,27 +387,27 @@ save(clackChsRet.dat,
 # ## Clackamas return
 
 ### sum diagonals to calculate total returns in year n
-clackChsTot.dat <- data.frame(
-  total_clack=sapply(
-    1:nrow(
-      clackChsRet.dat[,2:5]
-    )+1,
-    function(j) sum(
-      clackChsRet.dat[,2:5][row(
-        clackChsRet.dat[,2:5]
-      )+
-        col(
-          clackChsRet.dat[,2:5])==j]
-    )
-  )
-)
-
-### replace first three records with adjusted value ('2200')
-clackChsTot.dat[1:3,] <- 2200
-
-### create a combined ('manipulated') data frame
-clackChsRet.dat <- cbind(
-  clackChsRet.dat,
-  clackChsTot.dat
-)
+# clackChsTot.dat <- data.frame(
+#   total_clack=sapply(
+#     1:nrow(
+#       clackChsRet.dat[,2:5]
+#     )+1,
+#     function(j) sum(
+#       clackChsRet.dat[,2:5][row(
+#         clackChsRet.dat[,2:5]
+#       )+
+#         col(
+#           clackChsRet.dat[,2:5])==j]
+#     )
+#   )
+# )
+# 
+# ### replace first three records with adjusted value ('2200')
+# clackChsTot.dat[1:3,] <- 2200
+# 
+# ### create a combined ('manipulated') data frame
+# clackChsRet.dat <- cbind(
+#   clackChsRet.dat,
+#   clackChsTot.dat
+# )
 

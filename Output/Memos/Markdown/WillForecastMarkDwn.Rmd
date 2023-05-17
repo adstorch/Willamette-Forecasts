@@ -21,35 +21,69 @@ width: 0.2
 logoposition: left
 logo: "odfwLogo.v.2.png"
 ---
+```{r echo=FALSE}
+harv_rt_form = function(x) ifelse(is.na(x),"", sprintf("%.1f%%", x*100))
+harv_rt_formSm = function(x) ifelse(is.na(x),"", sprintf("%.2f%%", x*100))
+int_form = function(x) ifelse(is.na(x),"", formatC(x,digits = 0, format = "f", big.mark = ","))
+int_deci_form = function(x) ifelse(is.na(x),"", formatC(x,digits = 1, format = "f", big.mark = ","))
+year_form = function(x) ifelse(is.na(x),"", formatC(x,digits = 0, format = "f"))
+```
 
-```{r setup, echo=FALSE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(flextable)
+library(ggplot2)
+library(magrittr)
+library(openxlsx)
+library(officer)
+library(webshot)
+library(officedown)
+library(data.table)
+library(berryFunctions)
+library(scales)
+```
+
+```{r echo=FALSE}
 ### define current run year (value has to be entered manually)
 curr_year <- 2022
 
 ### load data files
-#### define file path
-inPath <- "U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Input\\~Input Data\\"
+#### define file path (make sure: Tools->Global Options...->R Markdown->
+#### Evaluate chunks in directory = "Project")
+inPath <- 'Input/~Input Data/'
 
 #### Willamette return data
 load(
-  file = paste(
-    inPath, "willChsRet.rda",
+  file =
+    paste0(
+    inPath,
+    'Return/Willamette/',
+    curr_year,
+    "willChsRet.rda",
     sep = ""
     )
   )
 
 #### Clackamas return data
 load(
-  file = paste(
-    inPath, "clackChsRet.rda",
+  file =
+    paste0(
+    inPath,
+    'Return/Clackamas/',
+    curr_year,
+    'clackChsRet.rda',
     sep = ""
     )
   )
 
 #### Willamette H-W proportion data
 load(
-  file = paste(
-    inPath, "willChsHWprop.rda",
+  file =
+    paste0(
+    inPath,
+    'Hatchery_Wild Proportion/',
+    curr_year,
+    'willChsHWprop.rda',
     sep = ""
     )
   )
@@ -60,6 +94,6 @@ load(
 
 ### Subsection Test
 
-The total Willamette River spring Chinook return to the Columbia River mouth during `r as.numeric(format(Sys.Date(), '%Y'))-1` is estimated to be `r willChsRet.dat[nrow(willChsRet.dat)-1,3]` fish (Table 1).  An estimated 10,728 of these fish were unmarked (~19%).  The 2022 total reconstructed return was approximately 108% of forecast.  The Clackamas River component was approximately 151% of forecast, with 6,432 spring Chinook returning to the Clackamas River compared to 4,247 (95% credible interval: 2,479–7,291) fish expected.
+The total Willamette River spring Chinook return to the Columbia River mouth during `r as.numeric(format(Sys.Date(), '%Y'))-1` is estimated to be `r format(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6], big.mark = ",")` fish (Table 1).  An estimated `r format(willChsHWprop.dat[nrow(willChsHWprop.dat),5], big.mark = ",")` of these fish were unmarked (~`r percent(willChsHWprop.dat[nrow(willChsHWprop.dat),4])`).  The 2022 total reconstructed return was approximately 108% of forecast.  The Clackamas River component was approximately 151% of forecast, with `r format(clackChsRet.dat[nrow(clackChsRet.dat),6], big.mark = ",")` spring Chinook returning to the Clackamas River compared to 4,247 (95% credible interval: 2,479–7,291) fish expected.
 
 The total return of adipose-fin-marked hatchery fish to the Columbia River mouth in 2022 is estimated to be 46,589, compared to 39,090 fish expected.  Counts at the Willamette Falls fishway indicate that 31,937 fin-marked hatchery fish and 6,692 unmarked fish passed the fish ladder.  The full reconstruction of the 2022 return is shown in Table 2.
