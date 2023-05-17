@@ -22,8 +22,38 @@ logoposition: left
 logo: "odfwLogo.v.2.png"
 ---
 
-```{r, echo=FALSE}
-load(file = "U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Input\\~Input Data\\willChsRet.rda")
+```{r setup, echo=FALSE}
+### define current run year (value has to be entered manually)
+curr_year <- 2022
+
+### load data files
+#### define file path
+inPath <- "U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Input\\~Input Data\\"
+
+#### Willamette return data
+load(
+  file = paste(
+    inPath, "willChsRet.rda",
+    sep = ""
+    )
+  )
+
+#### Clackamas return data
+load(
+  file = paste(
+    inPath, "clackChsRet.rda",
+    sep = ""
+    )
+  )
+
+#### Willamette H-W proportion data
+load(
+  file = paste(
+    inPath, "willChsHWprop.rda",
+    sep = ""
+    )
+  )
+     
 ```
   
 ## Summary of `r as.numeric(format(Sys.Date(), '%Y'))-1` Willamette River spring Chinook return

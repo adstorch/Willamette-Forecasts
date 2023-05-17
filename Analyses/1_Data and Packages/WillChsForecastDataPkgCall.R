@@ -14,37 +14,56 @@ install.load::install_load(packages)
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
 
-# load existing file -----------------------------------------------------------
-load(file='Input\\~Input Data\\willChsRet.rda')
-load(file='Input\\~Input Data\\clackChsRet.rda')
-load(file='Input\\~Input Data\\willChsHWprop.rda')
 
-# update existing file(s) ------------------------------------------------------
-## set current return year (this applies to all datasets to be updated)
+# set current RETURN year (this applies to all datasets to be updated ----------
 curr_year <- 2022
 
+# load existing file (prior year) ----------------------------------------------
+## Willamette return data
+load(
+  file = paste(
+    "Input\\~Input Data\\Return\\Willamette\\",
+    curr_year-1,
+    "willChsRet.rda",
+    sep=""
+  )
+)
 
-willChsHWprop.dat <- read.xlsx("Input\\~Input Data\\WillClackRawData.xlsx",
-                            sheet = 3,
-                            colNames = TRUE)
+## Clackamas return data
+load(
+  file = paste(
+    "Input\\~Input Data\\Return\\Clackamas\\",
+    curr_year-1,
+    "clackChsRet.rda",
+    sep=""
+  )
+)
 
-willChsHWprop.dat <- head(willChsHWprop.dat,-1)
+## Willamette H-W proportion data
+load(
+  file = paste(
+    "Input\\~Input Data\\Hatchery_Wild Proportion\\",
+    curr_year-1,
+    "willChsHWprop.rda",
+    sep=""
+  )
+)
 
-
-### Willamette return data
-#### create time variable
+# update existing file(s) ------------------------------------------------------
+## Willamette return data
+### create time variable
 time <- data.frame(brd_yr = curr_year - 2,
                    mig_yr = curr_year
 )
 
-#### define new data from big sheets or other sources
-#### (1) navigate to spreadsheet containing age-specific data
-#### (2) copy (ctrl+c) age-specific data
-#### (3) run line (below) corresponding to the age-class of interest
-#### for example, to define the "age3_col" variable, open the current
+### define new data from big sheets or other sources
+### (1) navigate to spreadsheet containing age-specific data
+### (2) copy (ctrl+c) age-specific data
+### (3) run line (below) corresponding to the age-class of interest
+### for example, to define the "age3_col" variable, open the current
 ### big sheet, find the estimate for age-3 spring Chinook entering the
-#### Columbia, copy (ctrl+c) that value to the clipboard,
-#### run the line below corresponding to "age3_col"
+### Columbia, copy (ctrl+c) that value to the clipboard,
+### run the line below corresponding to "age3_col"
 
 age3_col <- as.numeric(
   gsub(",",
@@ -105,7 +124,7 @@ willChsRet.dat <- rbind(
   )
 )
 
-#### insert new values into data frame
+### insert new values into data frame
 willChsRet.dat[nrow(willChsRet.dat) - 1, 3] = age3_col
 willChsRet.dat[nrow(willChsRet.dat) - 2, 4] = age4_col
 willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = age5_col
@@ -113,34 +132,36 @@ willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
 willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
 
-#### save backup of updated .rda
-save(willChsRet.dat, file=paste('Input\\~Input Data\\Backup\\Return\\',
-                                'Willamette\\',
-                                curr_year,
-                                'willChsRet.rda',
-                                sep = "")
+### save current year .rda
+save(willChsRet.dat,
+     file = paste(
+       "Input\\~Input Data\\Return\\Willamette\\",
+       curr_year,
+       "willChsRet.rda",
+       sep=""
+     )
 )
 
-#### save working updated .rda (this will overwrite existing file)
-save(willChsRet.dat, file='Input\\~Input Data\\willChsRet.rda')
+# ### save working updated .rda (this will overwrite existing file)
+# save(willChsRet.dat, file='Input\\~Input Data\\willChsRet.rda')
 
 
 
-### Willamette covariate data
-#### copy "Rank of the mean rank" data and run string below
+## Willamette covariate data
+### copy "Rank of the mean rank" data and run string below
 noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### copy "Mean of ranks" data and run string below
+### copy "Mean of ranks" data and run string below
 mu_noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### copy "Nearshore Ichthyoplankton Log(mg C 1,000 m-3; Jan-Mar)" data 
-#### and run string below
+### copy "Nearshore Ichthyoplankton Log(mg C 1,000 m-3; Jan-Mar)" data 
+### and run string below
 ichthy_biom <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### copy "Principal Component scores (PC1)" data and run string below
+### copy "Principal Component scores (PC1)" data and run string below
 pc1 <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### spring pdo data are from the internet and then manipulated as below
+### spring pdo data are from the internet and then manipulated as below
 sp_pdo <- subset(
   data.frame(
     year = read.table(
@@ -160,15 +181,17 @@ sp_pdo <- subset(
   year >= 1998
 )
 
-#### copy "Physical Spring Trans. UI based (day of year)" data
-#### and run string below
+sp_pdo <- head(sp_pdo, -1)
+
+### copy "Physical Spring Trans. UI based (day of year)" data
+### and run string below
 sp_trans <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### copy "Copepod richness anom.(no. species; May-Sept)" data and 
-#### run string below
+### copy "Copepod richness anom.(no. species; May-Sept)" data and 
+### run string below
 cope_rich <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
 
-#### conmbine time series
+### conmbine time series
 willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              mig_yr = seq(1998,curr_year,1),
                              noaa_ranks = noaa_ranks,
@@ -193,29 +216,32 @@ willChsCov.dat <- rbind(willChsCovPH.dat,
                         willChsCov.dat)
 
 
-#### save backup .rda
-save(willChsCov.dat, file=paste('Input\\~Input Data\\Backup\\',
-                                'Ocean Covariates\\',
-                                curr_year,
-                                'willChsCov.rda',
-                                sep = "")
+####save current year .rda
+save(willChsCov.dat,
+     file = paste(
+       'Input\\~Input Data\\',
+       'Ocean Covariates\\',
+       curr_year,
+       'willChsCov.rda',
+       sep = ""
+     )
 )
 
-### Willamette HW proportion data
-#### create time variable
+## Willamette HW proportion data
+### create time variable
 time.hwProp <- data.frame(
   p_yr = curr_year - 1,
   ret_yr = curr_year
 )
 
-#### define new data from big sheets or other sources
-#### (1) navigate to spreadsheet containing variable x record combination
-#### (2) copy (ctrl+c) record
-#### (3) run line (below) corresponding to the variable of interest
-#### for example, to define the "p_yr_ret" variable, open the big sheet from
+### define new data from big sheets or other sources
+### (1) navigate to spreadsheet containing variable x record combination
+### (2) copy (ctrl+c) record
+### (3) run line (below) corresponding to the variable of interest
+### for example, to define the "p_yr_ret" variable, open the big sheet from
 ### curr. year - 1, find the estimate for "Total" spring Chinook entering the
-#### Columbia, copy (ctrl+c) that value to the clipboard,
-#### run the line below corresponding to "p_yr_ret"
+### Columbia, copy (ctrl+c) that value to the clipboard,
+### run the line below corresponding to "p_yr_ret"
 p_yr_ret <- as.numeric(
   gsub(
     ",",
@@ -242,7 +268,7 @@ clp_rt_denom <- as.numeric(
 
 clp_rt <- clp_rt_num/clp_rt_denom
 
-#### append current year to loaded data frame
+### append current year to loaded data frame
 willChsHWprop.dat <- rbind(
   willChsHWprop.dat,
   setNames(
@@ -254,35 +280,38 @@ willChsHWprop.dat <- rbind(
   )
 )
 
-#### insert new values into data frame
+### insert new values into data frame
 willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
 
-#### save backup of updated .rda
-save(willChsHWprop.dat, file=paste('Input\\~Input Data\\Backup\\',
-                                 'Hatchery_Wild Proportion\\',
-                                 curr_year,
-                                 'willChsHWprop.rda',
-                                 sep = "")
+### save current year .rda
+save(willChsHWprop.dat,
+     file = paste(
+       "Input\\~Input Data\\Hatchery_Wild Proportion\\",
+       curr_year,
+       "willChsHWprop.rda",
+       sep=""
+     )
 )
 
-#### save working updated .rda (this will overwrite existing file)
-save(willChsHWprop.dat, file='Input\\~Input Data\\willChsHWprop.rda')
 
-### Clackamas return data
-#### create time variable
+# #### save working updated .rda (this will overwrite existing file)
+# save(willChsHWprop.dat, file='Input\\~Input Data\\willChsHWprop.rda')
+
+## Clackamas return data
+### create time variable
 time.clack <- data.frame(
   brd_yr = curr_year - 3
   )
 
-#### define new data from big sheets or other sources
-#### (1) navigate to spreadsheet containing age-specific data
-#### (2) copy (ctrl+c) age-specific data
-#### (3) run line (below) corresponding to the age-class of interest
-#### for example, to define the "age3_clack" variable, open the current
-#### big sheet, find the estimate for age-3 spring Chinook entering the
-#### Clackamas, copy (ctrl+c) that value to the clipboard,
-#### run the line below corresponding to "age3_clack"
+### define new data from big sheets or other sources
+### (1) navigate to spreadsheet containing age-specific data
+### (2) copy (ctrl+c) age-specific data
+### (3) run line (below) corresponding to the age-class of interest
+### for example, to define the "age3_clack" variable, open the current
+### big sheet, find the estimate for age-3 spring Chinook entering the
+### Clackamas, copy (ctrl+c) that value to the clipboard,
+### run the line below corresponding to "age3_clack"
 age3_clack <- as.numeric(
   gsub(
     ",",
@@ -315,7 +344,7 @@ age6_clack <- as.numeric(
   )
 )  # from big sheet (run entering Clackamas)
 
-#### append current years to loaded data frame
+### append current years to loaded data frame
 clackChsRet.dat <- rbind(
   clackChsRet.dat,
   setNames(
@@ -327,31 +356,34 @@ clackChsRet.dat <- rbind(
   )
 )
 
-#### insert new values into data frame
+### insert new values into data frame
 clackChsRet.dat[nrow(clackChsRet.dat), 2] = age3_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = age4_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
 
-#### save backup of updated .rda
-save(clackChsRet.dat, file=paste('Input\\~Input Data\\Backup\\Return\\',
-                                'Clackamas\\',
-                                curr_year,
-                                'clackChsRet.rda',
-                                sep = "")
+### save current year .rda
+save(clackChsRet.dat,
+     file=paste(
+       "Input\\~Input Data\\Return\\Clackamas\\",
+       curr_year,
+       "clackChsRet.rda",
+       sep=""
+     )
 )
 
-#### save working updated .rda (this will overwrite existing file)
-save(clackChsRet.dat, file='Input\\~Input Data\\clackChsRet.rda')
+# ### save working updated .rda (this will overwrite existing file)
+# save(clackChsRet.dat, file='Input\\~Input Data\\clackChsRet.rda')
 
-# manipulate existing or updated dataset ---------------------------------------
-## Willamette return
-### create sum variable for current analysis
-willChsRet.dat$sum23 <- 
-  willChsRet.dat$age3_col +
-  willChsRet.dat$age2_will
+# # manipulate existing or updated dataset ---------------------------------------
+# ## Willamette return
+# ### create sum variable for current analysis
+# willChsRet.dat$sum23 <- 
+#   willChsRet.dat$age3_col +
+#   willChsRet.dat$age2_will
+# 
+# ## Clackamas return
 
-## Clackamas return
 ### sum diagonals to calculate total returns in year n
 clackChsTot.dat <- data.frame(
   total_clack=sapply(
