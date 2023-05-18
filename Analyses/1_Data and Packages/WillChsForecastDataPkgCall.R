@@ -3,7 +3,8 @@ packages <- c("openxlsx",
               "ggplot2",
               "R2jags",
               "HDInterval",
-              "clipr")
+              "clipr",
+              "gnn")
 
 if (!require(install.load)) {
   install.packages("install.load")
@@ -14,16 +15,16 @@ install.load::install_load(packages)
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
 
-# set current RETURN year (this applies to all datasets to be updated ----------
-curr_year <- 2023
+# set current RETURN year (this applies to all datasets to be updated)----------
+curr_year <- 2022
 
 # new data entry ---------------------------------------------------------------
-# this has to be done manually using the "read_clip" function
+# this has to be done manually (line-by-line) using the "read_clip" function
 ## (1) copy the appropriate value (e.g., ctrl+c) from the source file
 ## (2) run the corresponding lines of code
 ## for example, to create a variable for "age3_col", open the current year's
 ## "Big Sheet". Select and copy the value for "Age 3" corresponding to the 
-## row for "Run Entering Columbia" (the value will be copied to the clipboard.
+## row for "Run Entering Columbia" (the value will be copied to the clipboard).
 ## Run the code in lines 31-36 below.
 
 ## Willamette return data
@@ -186,14 +187,6 @@ clp_rt_num <- as.numeric(
   )
 )
 
-# clp_rt_denom <- as.numeric(
-#   gsub(
-#     ",",
-#     "",
-#     read_clip()
-#   )
-# )  # from big sheet curr. year ("Total" run entering Columbia)
-
 ## Clackamas return data
 ### age-3 return to the Clackamas River
 ### from current years' "Big Sheet" ("Run Entering Clackamas")
@@ -235,8 +228,9 @@ age6_clack <- as.numeric(
   )
 )
 
-# load existing file (prior year) ----------------------------------------------
-## Willamette return data
+# update data (from prior year; code can be run in one chunk)-------------------
+## load existing file (prior year)
+### Willamette return data
 load(
   file = paste(
     "Input\\~Input Data\\Return\\Willamette\\",
@@ -246,7 +240,7 @@ load(
   )
 )
 
-## Willamette H-W proportion data
+### Willamette H-W proportion data
 load(
   file = paste(
     "Input\\~Input Data\\Hatchery_Wild Proportion\\",
@@ -256,7 +250,7 @@ load(
   )
 )
 
-## Clackamas return data
+### Clackamas return data
 load(
   file = paste(
     "Input\\~Input Data\\Return\\Clackamas\\",
@@ -266,14 +260,14 @@ load(
   )
 )
 
-# update existing file(s) ------------------------------------------------------
-## Willamette return data
-### create time variable
+## update existing file(s)
+### Willamette return data
+#### create time variable
 time <- data.frame(brd_yr = curr_year - 2,
                    mig_yr = curr_year
 )
 
-### append current year (time) to loaded data frame
+#### append current year (time) to loaded data frame
 willChsRet.dat <- rbind(
   willChsRet.dat,
   setNames(
@@ -285,7 +279,7 @@ willChsRet.dat <- rbind(
   )
 )
 
-### insert new values into data frame
+#### insert new values into data frame
 willChsRet.dat[nrow(willChsRet.dat) - 1, 3] = age3_col
 willChsRet.dat[nrow(willChsRet.dat) - 2, 4] = age4_col
 willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = age5_col
@@ -293,7 +287,7 @@ willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
 willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
 
-### save current year .rda
+#### save current year .rda
 save(willChsRet.dat,
      file = paste(
        "Input\\~Input Data\\Return\\Willamette\\",
@@ -303,9 +297,9 @@ save(willChsRet.dat,
      )
 )
 
-## Willamette covariate data
-### spring (May-Aug) pdo
-### raw data are retrieved from the interwebs (URL below) and manipulated here
+### Willamette covariate data
+#### spring (May-Aug) pdo
+#### raw data are retrieved from the interwebs (URL below) and manipulated here
 sp_pdo <- subset(
   data.frame(
     year = read.table(
@@ -327,8 +321,8 @@ sp_pdo <- subset(
 
 sp_pdo <- head(sp_pdo, -1)
 
-### time series development
-#### current time series (reporting began in mig. yr. 1998)
+#### time series development
+##### current time series (reporting began in mig. yr. 1998)
 willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              mig_yr = seq(1998,curr_year,1),
                              noaa_ranks = noaa_ranks,
@@ -339,7 +333,7 @@ willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              sp_trans = sp_trans,
                              cope_rich = cope_rich)
 
-#### dummy time series to account for period befor reporting began
+##### dummy time series to account for period befor reporting began
 willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
                               mig_yr = seq(1971,1997,1),
                               noaa_ranks = NA,
@@ -350,12 +344,12 @@ willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
                               sp_trans = NA,
                               cope_rich = NA)
 
-#### combine current and dummy time series
+##### combine current and dummy time series
 willChsCov.dat <- rbind(willChsCovPH.dat,
                         willChsCov.dat)
 
 
-### save current year .rda
+#### save current year .rda
 save(willChsCov.dat,
      file = paste(
        'Input\\~Input Data\\',
@@ -366,14 +360,14 @@ save(willChsCov.dat,
      )
 )
 
-## Willamette HW proportion data
-### create time variable
+### Willamette HW proportion data
+#### create time variable
 time.hwProp <- data.frame(
   p_yr = curr_year - 1,
   ret_yr = curr_year
 )
 
-### create variable (total return to CRM) representing denominator in clp_rt
+#### create variable (total return to CRM) representing denominator in clp_rt
 clp_rt_denom <- as.numeric(
   age3_col + 
     age4_col + 
@@ -381,10 +375,10 @@ clp_rt_denom <- as.numeric(
     age6_col
 )
 
-### calculate the unclipped rate for the current return year
+#### calculate the unclipped rate for the current return year
 clp_rt <- clp_rt_num/clp_rt_denom
 
-### append current year (time) to loaded data frame
+#### append current year (time) to loaded data frame
 willChsHWprop.dat <- rbind(
   willChsHWprop.dat,
   setNames(
@@ -396,12 +390,12 @@ willChsHWprop.dat <- rbind(
   )
 )
 
-### insert new values into data frame
+#### insert new values into data frame
 willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
 willChsHWprop.dat[nrow(willChsHWprop.dat), 5] = clp_rt_num
 
-### save current year .rda
+#### save current year .rda
 save(willChsHWprop.dat,
      file = paste(
        "Input\\~Input Data\\Hatchery_Wild Proportion\\",
@@ -411,13 +405,13 @@ save(willChsHWprop.dat,
      )
 )
 
-## Clackamas return data
-### create time variable
+### Clackamas return data
+#### create time variable
 time.clack <- data.frame(
   brd_yr = curr_year - 3
 )
 
-### append current year (time) to loaded data frame
+#### append current year (time) to loaded data frame
 clackChsRet.dat <- rbind(
   clackChsRet.dat,
   setNames(
@@ -429,7 +423,7 @@ clackChsRet.dat <- rbind(
   )
 )
 
-### insert new values into data frame
+#### insert new values into data frame
 clackChsRet.dat[nrow(clackChsRet.dat), 2] = age3_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = age4_clack
 clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
@@ -437,7 +431,7 @@ clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
 clackChsRet.dat[nrow(clackChsRet.dat), 6] = age3_clack + age4_clack +
   age5_clack + age6_clack
 
-### save current year .rda
+#### save current year .rda
 save(clackChsRet.dat,
      file=paste(
        "Input\\~Input Data\\Return\\Clackamas\\",

@@ -1154,3 +1154,84 @@ willComb.pred.out[nrow(
 
 ### review output data frame
 print(willComb.pred.out)
+
+### rename output data frame according to prediction year
+#### save current year .rda
+saveRDS(willComb.pred.out,
+file = paste(
+  'Output\\Predictions\\',
+  curr_year+1,
+  'willComb.pred.out.rda',
+  sep = ""
+)
+)
+
+name <- as.(paste0(
+  curr_year+10,
+  'willComb.pred.out',
+  sep = ""
+))
+
+
+eval(name)<- readRDS(paste(
+  'Output\\Predictions\\',
+  curr_year+1,
+  'willComb.pred.out.rda',
+  sep = ""
+)
+)
+
+eval(as.name(paste(
+  curr_year+1,
+  "willComb.pred.out",
+  sep = ""
+)
+)
+)
+
+assign(
+  paste(
+    "willComb.pred.out",
+    curr_year+1,
+    sep = ""
+  ),
+  willComb.pred.out
+)
+
+#### save as .rda
+save(assign(
+  paste(
+    curr_year+1,
+    "willComb.pred.out",
+    sep = ""
+  ),
+  willComb.pred.out
+),
+     file = paste(
+       'Output\\Predictions\\',
+       curr_year,
+       'willChsCov.rda',
+       sep = ""
+     )
+)
+
+
+#### save current year .rda
+save(willComb.pred.out,
+     file = paste(
+       'Output\\Predictions\\',
+       curr_year+15,
+       'willComb.pred.out.rda',
+       sep = ""
+     )
+)
+
+rename_rda(oldname, oldfile = paste0(oldname, collapse = "_"),
+           newname, newfile = paste0(newname, collapse = "_", ".rda"),
+           package = NULL)
+
+rename_rda(oldname, oldfile = paste0(oldname, collapse = "_"),
+           newname, newfile = paste0(newname, collapse = "_", ".rda"),
+           package = NULL)
+?save
+
