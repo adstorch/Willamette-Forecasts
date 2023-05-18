@@ -273,6 +273,62 @@ time <- data.frame(brd_yr = curr_year - 2,
                    mig_yr = curr_year
 )
 
+# ### define new data from big sheets or other sources
+# ### (1) navigate to spreadsheet containing age-specific data
+# ### (2) copy (ctrl+c) age-specific data
+# ### (3) run line (below) corresponding to the age-class of interest
+# ### for example, to define the "age3_col" variable, open the current
+# ### big sheet, find the estimate for age-3 spring Chinook entering the
+# ### Columbia, copy (ctrl+c) that value to the clipboard,
+# ### run the line below corresponding to "age3_col"
+# 
+# age3_col <- as.numeric(
+#   gsub(",",
+#        "",
+#        read_clip()
+#   )
+# ) # from big sheet (run entering Columbia)
+# 
+# age4_col <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Columbia)
+# 
+# age5_col <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Columbia)
+# 
+# age6_col <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Columbia)
+# 
+# age3_will <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Columbia)
+# 
+# age2_will <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from Will. Falls monthly counts
+
 ### append current year (time) to loaded data frame
 willChsRet.dat <- rbind(
   willChsRet.dat,
@@ -303,9 +359,23 @@ save(willChsRet.dat,
      )
 )
 
+
+
 ## Willamette covariate data
-### spring (May-Aug) pdo
-### raw data are retrieved from the interwebs (URL below) and manipulated here
+# ### copy "Rank of the mean rank" data and run string below
+# noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+# 
+# ### copy "Mean of ranks" data and run string below
+# mu_noaa_ranks <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+# 
+# ### copy "Nearshore Ichthyoplankton Log(mg C 1,000 m-3; Jan-Mar)" data 
+# ### and run string below
+# ichthy_biom <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+# 
+# ### copy "Principal Component scores (PC1)" data and run string below
+# pc1 <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+### spring pdo data are from the internet and then manipulated as below
 sp_pdo <- subset(
   data.frame(
     year = read.table(
@@ -327,8 +397,15 @@ sp_pdo <- subset(
 
 sp_pdo <- head(sp_pdo, -1)
 
-### time series development
-#### current time series (reporting began in mig. yr. 1998)
+# ### copy "Physical Spring Trans. UI based (day of year)" data
+# ### and run string below
+# sp_trans <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+# 
+# ### copy "Copepod richness anom.(no. species; May-Sept)" data and 
+# ### run string below
+# cope_rich <- as.numeric(unlist(t(strsplit(read_clip(),"\t"))))
+
+### conmbined time series
 willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              mig_yr = seq(1998,curr_year,1),
                              noaa_ranks = noaa_ranks,
@@ -339,7 +416,6 @@ willChsCov.dat <- data.frame(brd_yr = seq(1996,curr_year - 2,1),
                              sp_trans = sp_trans,
                              cope_rich = cope_rich)
 
-#### dummy time series to account for period befor reporting began
 willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
                               mig_yr = seq(1971,1997,1),
                               noaa_ranks = NA,
@@ -350,12 +426,11 @@ willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
                               sp_trans = NA,
                               cope_rich = NA)
 
-#### combine current and dummy time series
 willChsCov.dat <- rbind(willChsCovPH.dat,
                         willChsCov.dat)
 
 
-### save current year .rda
+####save current year .rda
 save(willChsCov.dat,
      file = paste(
        'Input\\~Input Data\\',
@@ -373,7 +448,30 @@ time.hwProp <- data.frame(
   ret_yr = curr_year
 )
 
-### create variable (total return to CRM) representing denominator in clp_rt
+### define new data from big sheets or other sources
+### (1) navigate to spreadsheet containing variable x record combination
+### (2) copy (ctrl+c) record
+### (3) run line (below) corresponding to the variable of interest
+### for example, to define the "p_yr_ret" variable, open the big sheet from
+### curr. year - 1, find the estimate for "Total" spring Chinook entering the
+### Columbia, copy (ctrl+c) that value to the clipboard,
+### run the line below corresponding to "p_yr_ret"
+# p_yr_ret <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet curr. year - 1 (run entering Columbia)
+# 
+# clp_rt_num <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet curr. year ("Wild" run entering Columbia)
+
 clp_rt_denom <- as.numeric(
   age3_col + 
     age4_col + 
@@ -381,10 +479,9 @@ clp_rt_denom <- as.numeric(
     age6_col
 )
 
-### calculate the unclipped rate for the current return year
 clp_rt <- clp_rt_num/clp_rt_denom
 
-### append current year (time) to loaded data frame
+### append current year to loaded data frame
 willChsHWprop.dat <- rbind(
   willChsHWprop.dat,
   setNames(
@@ -415,9 +512,49 @@ save(willChsHWprop.dat,
 ### create time variable
 time.clack <- data.frame(
   brd_yr = curr_year - 3
-)
+  )
 
-### append current year (time) to loaded data frame
+### define new data from big sheets or other sources
+### (1) navigate to spreadsheet containing age-specific data
+### (2) copy (ctrl+c) age-specific data
+### (3) run line (below) corresponding to the age-class of interest
+### for example, to define the "age3_clack" variable, open the current
+### big sheet, find the estimate for age-3 spring Chinook entering the
+### Clackamas, copy (ctrl+c) that value to the clipboard,
+### run the line below corresponding to "age3_clack"
+# age3_clack <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Clackamas)
+# 
+# age4_clack <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Clackamas)
+#        
+# age5_clack <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Clackamas)
+#        
+# age6_clack <- as.numeric(
+#   gsub(
+#     ",",
+#     "",
+#     read_clip()
+#   )
+# )  # from big sheet (run entering Clackamas)
+
+### append current years to loaded data frame
 clackChsRet.dat <- rbind(
   clackChsRet.dat,
   setNames(
@@ -446,3 +583,38 @@ save(clackChsRet.dat,
        sep=""
      )
 )
+
+# # manipulate existing or updated dataset -------------------------------------
+# ## Willamette return
+# ### create sum variable for current analysis
+# willChsRet.dat$sum23 <- 
+#   willChsRet.dat$age3_col +
+#   willChsRet.dat$age2_will
+# 
+# ## Clackamas return
+
+### sum diagonals to calculate total returns in year n
+# clackChsTot.dat <- data.frame(
+#   total_clack=sapply(
+#     1:nrow(
+#       clackChsRet.dat[,2:5]
+#     )+1,
+#     function(j) sum(
+#       clackChsRet.dat[,2:5][row(
+#         clackChsRet.dat[,2:5]
+#       )+
+#         col(
+#           clackChsRet.dat[,2:5])==j]
+#     )
+#   )
+# )
+# 
+# ### replace first three records with adjusted value ('2200')
+# clackChsTot.dat[1:3,] <- 2200
+# 
+# ### create a combined ('manipulated') data frame
+# clackChsRet.dat <- cbind(
+#   clackChsRet.dat,
+#   clackChsTot.dat
+# )
+
