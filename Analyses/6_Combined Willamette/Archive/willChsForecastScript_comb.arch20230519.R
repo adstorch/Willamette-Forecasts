@@ -1151,13 +1151,92 @@ willComb.pred.out[nrow(
 ### review output data frame
 print(willComb.pred.out)
 
-### save new (curr_year+1) predictions (.rds)
-saveRDS(
-  willComb.pred.out,
-  file = paste(
+### rename output data frame according to prediction year
+#### save current year .rda
+saveRDS(willComb.pred.out,
+file = paste(
+  'Output\\Predictions\\',
+  curr_year+1,
+  'willComb.pred.out.rda',
+  sep = ""
+)
+)
+
+prior.yr.predns <- readRDS(
+  paste(
     'Output\\Predictions\\',
-    curr_year+1,
-    'willComb.pred.out.rds',
+    curr_year-1,
+    'willComb.pred.out.rda',
     sep = ""
   )
 )
+
+# name <- as.(paste0(
+#   curr_year+10,
+#   'willComb.pred.out',
+#   sep = ""
+# ))
+# 
+# 
+# eval(name)<- readRDS(paste(
+#   'Output\\Predictions\\',
+#   curr_year+1,
+#   'willComb.pred.out.rda',
+#   sep = ""
+# )
+# )
+# 
+# eval(as.name(paste(
+#   curr_year+1,
+#   "willComb.pred.out",
+#   sep = ""
+# )
+# )
+# )
+# 
+# assign(
+#   paste(
+#     "willComb.pred.out",
+#     curr_year+1,
+#     sep = ""
+#   ),
+#   willComb.pred.out
+# )
+# 
+# #### save as .rda
+# save(assign(
+#   class(paste(curr_year+1,"willComb.pred.out",sep = ""))
+#   willComb.pred.out
+# ),
+#      file = paste(
+#        'Output\\Predictions\\',
+#        curr_year,
+#        'willChsCov.rda',
+#        sep = ""
+#      )
+# )
+# 
+# 
+# #### save current year .rda
+# save(obj,
+#      file = paste(
+#        'Output\\Predictions\\',
+#        curr_year+5,
+#        'willComb.pred.out.rda',
+#        sep = ""
+#      )
+# )
+# 
+# 
+# 
+# rename_rda("willComb.pred.out", "Output\\Predictions\\willComb.pred.out.rda",
+#            paste(curr_year+1,"willComb.pred.out",sep = ""), newfile = "Output\\Predictions\\willComb.pred.out.rda")
+# 
+# rename_rda(oldname, oldfile = paste0(oldname, collapse = "_"),
+#            newname, newfile = paste0(newname, collapse = "_", ".rda"),
+#            package = NULL)
+# ?save
+# class(obj)
+# 
+# x <- paste("varname",2, sep="")
+# as.name(eval(paste("willComb.pred.out",curr_year+1, sep=""))) <- c(1)

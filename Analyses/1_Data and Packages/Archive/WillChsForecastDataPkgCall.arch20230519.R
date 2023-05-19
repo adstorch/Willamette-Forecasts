@@ -239,6 +239,36 @@ load(
   )
 )
 
+# ### Willamette return data
+# load(
+#   file = paste(
+#     "Input\\~Input Data\\Return\\Willamette\\",
+#     curr_year-1,
+#     "willChsRet.rda",
+#     sep=""
+#   )
+# )
+# 
+# ### Willamette H-W proportion data
+# load(
+#   file = paste(
+#     "Input\\~Input Data\\Hatchery_Wild Proportion\\",
+#     curr_year-1,
+#     "willChsHWprop.rda",
+#     sep=""
+#   )
+# )
+# 
+# ### Clackamas return data
+# load(
+#   file = paste(
+#     "Input\\~Input Data\\Return\\Clackamas\\",
+#     curr_year-1,
+#     "clackChsRet.rda",
+#     sep=""
+#   )
+# )
+
 ## update existing file(s)
 ### Willamette return data
 #### create time variable
@@ -265,6 +295,16 @@ willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = age5_col
 willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
 willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
+
+#### save current year .rda
+# save(willChsRet.dat,
+#      file = paste(
+#        "Input\\~Input Data\\Return\\Willamette\\",
+#        curr_year,
+#        "willChsRet.rda",
+#        sep=""
+#      )
+# )
 
 ### Willamette covariate data
 #### spring (May-Aug) pdo
@@ -317,6 +357,18 @@ willChsCovPH.dat<- data.frame(brd_yr = seq(1969,1995,1),
 willChsCov.dat <- rbind(willChsCovPH.dat,
                         willChsCov.dat)
 
+
+#### save current year .rda
+# save(willChsCov.dat,
+#      file = paste(
+#        'Input\\~Input Data\\',
+#        'Ocean Covariates\\',
+#        curr_year,
+#        'willChsCov.rda',
+#        sep = ""
+#      )
+# )
+
 ### Willamette HW proportion data
 #### create time variable
 time.hwProp <- data.frame(
@@ -352,6 +404,16 @@ willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
 willChsHWprop.dat[nrow(willChsHWprop.dat), 5] = clp_rt_num
 
+# #### save current year .rda
+# save(willChsHWprop.dat,
+#      file = paste(
+#        "Input\\~Input Data\\Hatchery_Wild Proportion\\",
+#        curr_year,
+#        "willChsHWprop.rda",
+#        sep=""
+#      )
+# )
+
 ### Clackamas return data
 #### create time variable
 time.clack <- data.frame(
@@ -378,6 +440,15 @@ clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
 clackChsRet.dat[nrow(clackChsRet.dat), 6] = age3_clack + age4_clack +
   age5_clack + age6_clack
 
+# #### save current year .rda
+# save(clackChsRet.dat,
+#      file=paste(
+#        "Input\\~Input Data\\Return\\Clackamas\\",
+#        curr_year,
+#        "clackChsRet.rda",
+#        sep=""
+#      )
+# )
 ## save input data (.rda)
 save(willChsRet.dat,
      willChsCov.dat,
@@ -389,3 +460,4 @@ save(willChsRet.dat,
        "willClackInpData.rda",
        sep=""
      ))
+

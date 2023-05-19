@@ -63,7 +63,44 @@ load(
   )
 )
 
-#### new (curr_year+1) predictions
+
+
+load(
+  file =
+    paste0(
+    inPath,
+    'Return/Willamette/',
+    curr_year,
+    "willChsRet.rda",
+    sep = ""
+    )
+  )
+
+#### Clackamas return data
+load(
+  file =
+    paste0(
+    inPath,
+    'Return/Clackamas/',
+    curr_year,
+    'clackChsRet.rda',
+    sep = ""
+    )
+  )
+
+#### Willamette H-W proportion data
+load(
+  file =
+    paste0(
+    inPath,
+    'Hatchery_Wild Proportion/',
+    curr_year,
+    'willChsHWprop.rda',
+    sep = ""
+    )
+  )
+
+### new (curr_year+1) predictions
 curr.predns <- readRDS(
   paste(
     predPath,
@@ -73,7 +110,7 @@ curr.predns <- readRDS(
   )
 )
 
-#### prior years' (curr_year) predictions
+### prior years' (curr_year) predictions
 prior.predns <- readRDS(
   paste(
     'predPath',
