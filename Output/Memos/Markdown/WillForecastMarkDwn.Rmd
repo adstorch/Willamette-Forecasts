@@ -76,7 +76,7 @@ curr.predns <- readRDS(
 #### prior years' (curr_year) predictions
 prior.predns <- readRDS(
   paste(
-    'predPath',
+    predPath,
     curr_year,
     'willComb.pred.out.rds',
     sep = ""
