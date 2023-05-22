@@ -4,11 +4,11 @@ clackFit.dat <- data.frame(clack_2Yr = head(
   tail(
     with(
       subset(
-        clackChsManip.dat,select=c(age3_clack)
+        clackChsRet.dat,select=c(age3_clack)
       ),
       c(
         age3_clack[1],age3_clack[-1]+
-          age3_clack[-nrow(clackChsManip.dat)]
+          age3_clack[-nrow(clackChsRet.dat)]
       )
     ),
     -1
@@ -17,7 +17,7 @@ clackFit.dat <- data.frame(clack_2Yr = head(
 ),
 total_clack = tail(
   subset(
-    clackChsManip.dat,
+    clackChsRet.dat,
     select=c(
       total_clack
     )
@@ -30,13 +30,13 @@ total_clack = tail(
 clackPred.dat <- tail(
   with(
     subset(
-      clackChsManip.dat,select=c(
+      clackChsRet.dat,select=c(
         age3_clack
       )
     ),
     c(
       age3_clack[1],
-      age3_clack[-1]+age3_clack[-nrow(clackChsManip.dat)]
+      age3_clack[-1]+age3_clack[-nrow(clackChsRet.dat)]
     )
   ),
   1
@@ -216,3 +216,14 @@ clack.pred.out[1,]<-c(
 
 ### review output data frame
 print(clack.pred.out)
+
+### save new (curr_year+1) predictions (.rds)
+saveRDS(
+  clack.pred.out,
+  file = paste(
+    'Output\\Predictions\\',
+    curr_year+1,
+    'clack.pred.out.rds',
+    sep = ""
+  )
+)
