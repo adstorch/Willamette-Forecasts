@@ -4,7 +4,8 @@ packages <- c("openxlsx",
               "R2jags",
               "HDInterval",
               "clipr",
-              "gnn")
+              "gnn",
+              "dplyr")
 
 if (!require(install.load)) {
   install.packages("install.load")
@@ -227,6 +228,23 @@ age6_clack <- as.numeric(
     read_clip()
   )
 )
+
+comp_rr <- na.omit(
+  read.xlsx(
+    paste0(
+      "Input\\Background Data\\Big Sheets\\",
+      curr_year,
+      "WillametteBigSheet.xlsx",
+      sep=""
+    ),
+    sheet = 1,
+    colNames = FALSE
+  )[2:29,]
+) %>% 
+  `colnames<-`(.[1, ]) %>% 
+  .[-1, ] %>% 
+  mutate_at(vars("Age 3", "Age 4","Age 5","Age 6","Total","Adults"), as.numeric) %>% 
+  mutate_if(is.numeric, round)
 
 # update data (from prior year; code can be run in one chunk)-------------------
 ## load existing input files (prior year)
