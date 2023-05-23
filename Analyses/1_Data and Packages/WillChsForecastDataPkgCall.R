@@ -5,7 +5,9 @@ packages <- c("openxlsx",
               "HDInterval",
               "clipr",
               "gnn",
-              "dplyr")
+              "dplyr",
+              "stringr",
+              "data.table")
 
 if (!require(install.load)) {
   install.packages("install.load")
@@ -17,7 +19,7 @@ install.load::install_load(packages)
 source("Exogenous functions\\round_fun.R")
 
 # set current RETURN year (this applies to all datasets to be updated)----------
-curr_year <- 2022
+curr_year <- 2016
 
 # new data entry ---------------------------------------------------------------
 # this has to be done manually (line-by-line) using the "read_clip" function
@@ -229,6 +231,70 @@ age6_clack <- as.numeric(
   )
 )
 
+comp_rr <-
+  read.xlsx(
+    paste0(
+      "Input\\Background Data\\Big Sheets\\",
+      curr_year,
+      "WillametteBigSheet.xlsx",
+      sep=""
+    ),
+    sheet = 3,
+    colNames = FALSE
+  ) %>% 
+  slice(as.numeric(which(X1 %like% "Catch")):as.numeric(which(X1 %like% "Run Entering Clackamas"))) 
+  # select(c(1:5,which(if_any(contains("Wild")))))
+  
+  # which(comp_rr,if_any(contains("Wild")))
+  
+# comp_rr <- slice(which(comp_rr$X1 %like% "Catch"):which(comp_rr$X1 %like% "Run Entering Clackamas"),c(1:5,which(across(X1:X14,function(x) any(grepl("Wild", x))))))
+  comp_rr <- comp_rr[which(comp_rr$X1 %like% "Catch"):which(comp_rr$X1 %like% "Run Entering Clackamas"),c(1:5,which(apply(comp_rr, 2, function(x) any(grepl("Wild", x)))))] %>%
+  `colnames<-`(.[1, ]) %>% 
+  .[-1, ] %>% 
+  mutate_at(vars("Age 3",
+                 "Age 4",
+                 "Age 5",
+                 "Age 6",
+                 "Wild"), as.numeric) %>% 
+  rename(catch = "Catch",
+         age_3 = "Age 3",
+         age_4 = "Age 4",
+         age_5 = "Age 5",
+         age_6 = "Age 6",
+         wild = "Wild") %>%
+  filter_at(vars(catch), all_vars(!is.na(.))) %>%
+  mutate_if(is.numeric, round) %>% 
+  filter(!str_detect(catch, 'Totals')) %>%
+  filter(!str_detect(catch, 'Escapement')) %>% 
+  filter(!str_detect(catch, 'Percent')) %>% 
+  mutate(adults = age_4 + age_5 + age_6) %>%
+  mutate(total = age_3 + age_4 + age_5 + age_6) %>% 
+  mutate(hatchery = total - wild)
+
+
+
+
+comp_rr <- na.omit(
+  read.xlsx(
+    paste0(
+      "Input\\Background Data\\Big Sheets\\",
+      curr_year,
+      "WillametteBigSheet.xlsx",
+      sep=""
+    ),
+    sheet = 3,
+    colNames = FALSE
+  )[2:29,c(1:5,8)]
+) %>% 
+  `colnames<-`(.[1, ]) %>% 
+  .[-1, ] %>% 
+  mutate_at(vars("Age 3", "Age 4","Age 5","Age 6"), as.numeric) %>% 
+  mutate_if(is.numeric, round) %>% 
+  filter(!str_detect(Catch, 'Totals')) %>% 
+  filter(!str_detect(Catch, 'Escapement')) %>% 
+  filter(!str_detect(Catch, 'Percent'))
+
+
 comp_rr <- na.omit(
   read.xlsx(
     paste0(
@@ -240,11 +306,9 @@ comp_rr <- na.omit(
     sheet = 1,
     colNames = FALSE
   )[2:29,]
-) %>% 
-  `colnames<-`(.[1, ]) %>% 
-  .[-1, ] %>% 
-  mutate_at(vars("Age 3", "Age 4","Age 5","Age 6","Total","Adults"), as.numeric) %>% 
-  mutate_if(is.numeric, round)
+) 
+
+
 
 # update data (from prior year; code can be run in one chunk)-------------------
 ## load existing input files (prior year)
