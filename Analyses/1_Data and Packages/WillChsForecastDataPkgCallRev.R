@@ -18,8 +18,47 @@ install.load::install_load(packages)
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
 
+
+
 # set current RETURN year (this applies to all datasets to be updated)----------
-curr_year <- 2016
+curr_year <- 2022
+
+# load run reconstruction (corresponding to "curr_year") and manipulate data----
+comp_rr <-
+  read.xlsx(
+    paste0(
+      "Input\\Background Data\\Big Sheets\\",
+      curr_year,
+      "WillametteBigSheet.xlsx",
+      sep=""
+    ),
+    sheet = 3,
+    colNames = FALSE
+  ) %>% 
+  slice(as.numeric(which(X1 %like% "Catch")):as.numeric(which(X1 %like% "Run Entering Clackamas")))
+
+comp_rr <- comp_rr[which(comp_rr$X1 %like% "Catch"):which(comp_rr$X1 %like% "Run Entering Clackamas"),c(1:5,which(apply(comp_rr, 2, function(x) any(grepl("Wild", x)))))] %>%
+  `colnames<-`(.[1, ]) %>% 
+  .[-1, ] %>% 
+  mutate_at(vars("Age 3",
+                 "Age 4",
+                 "Age 5",
+                 "Age 6",
+                 "Wild"), as.numeric) %>% 
+  rename(catch = "Catch",
+         age_3 = "Age 3",
+         age_4 = "Age 4",
+         age_5 = "Age 5",
+         age_6 = "Age 6",
+         wild = "Wild") %>%
+  filter_at(vars(catch), all_vars(!is.na(.))) %>%
+  mutate_if(is.numeric, round) %>% 
+  filter(!str_detect(catch, 'Totals')) %>%
+  filter(!str_detect(catch, 'Escapement')) %>% 
+  filter(!str_detect(catch, 'Percent')) %>% 
+  mutate(adults = age_4 + age_5 + age_6) %>%
+  mutate(total = age_3 + age_4 + age_5 + age_6) %>% 
+  mutate(hatchery = total - wild)
 
 # new data entry ---------------------------------------------------------------
 # this has to be done manually (line-by-line) using the "read_clip" function
@@ -31,55 +70,6 @@ curr_year <- 2016
 ## Run the code in lines 31-36 below.
 
 ## Willamette return data
-### age-3 return to the Columbia River mouth
-### from current years' "Big Sheet" ("Run Entering Columbia")
-age3_col <- as.numeric(
-  gsub(",",
-       "",
-       read_clip()
-  )
-)
-
-### age-4 return to the Columbia River mouth
-### from current years' "Big Sheet" ("Run Entering Columbia")
-age4_col <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-5 return to the Columbia River mouth
-### from current years' "Big Sheet" ("Run Entering Columbia")
-age5_col <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-6 return to the Columbia River mouth
-### from current years' "Big Sheet" ("Run Entering Columbia")
-age6_col <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-3 count at Willamette Falls
-### from current years' "Big Sheet" ("Escapement: Willamette Falls Count")
-age3_will <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)  # from big sheet (run entering Columbia)
-
 ### age-2 (mini jack) count at Willamette Falls
 ### from current years' Will. Falls monthly counts ("Mini Jack: Cum" on 15 Aug.)
 age2_will <- as.numeric(
@@ -180,93 +170,6 @@ p_yr_ret <- as.numeric(
   )
 )
 
-### total WILD return (age-3 - age-6)
-### from current years' "Big Sheet" ("Run Entering Columbia")
-clp_rt_num <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-## Clackamas return data
-### age-3 return to the Clackamas River
-### from current years' "Big Sheet" ("Run Entering Clackamas")
-age3_clack <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-4 return to the Clackamas River
-### from current years' "Big Sheet" ("Run Entering Clackamas")
-age4_clack <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-5 return to the Clackamas River
-### from current years' "Big Sheet" ("Run Entering Clackamas")
-age5_clack <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-### age-6 return to the Clackamas River
-### from current years' "Big Sheet" ("Run Entering Clackamas")
-age6_clack <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
-comp_rr <-
-  read.xlsx(
-    paste0(
-      "Input\\Background Data\\Big Sheets\\",
-      curr_year,
-      "WillametteBigSheet.xlsx",
-      sep=""
-    ),
-    sheet = 3,
-    colNames = FALSE
-  ) %>% 
-  slice(as.numeric(which(X1 %like% "Catch")):as.numeric(which(X1 %like% "Run Entering Clackamas")))
-
-comp_rr <- comp_rr[which(comp_rr$X1 %like% "Catch"):which(comp_rr$X1 %like% "Run Entering Clackamas"),c(1:5,which(apply(comp_rr, 2, function(x) any(grepl("Wild", x)))))] %>%
-  `colnames<-`(.[1, ]) %>% 
-  .[-1, ] %>% 
-  mutate_at(vars("Age 3",
-                 "Age 4",
-                 "Age 5",
-                 "Age 6",
-                 "Wild"), as.numeric) %>% 
-  rename(catch = "Catch",
-         age_3 = "Age 3",
-         age_4 = "Age 4",
-         age_5 = "Age 5",
-         age_6 = "Age 6",
-         wild = "Wild") %>%
-  filter_at(vars(catch), all_vars(!is.na(.))) %>%
-  mutate_if(is.numeric, round) %>% 
-  filter(!str_detect(catch, 'Totals')) %>%
-  filter(!str_detect(catch, 'Escapement')) %>% 
-  filter(!str_detect(catch, 'Percent')) %>% 
-  mutate(adults = age_4 + age_5 + age_6) %>%
-  mutate(total = age_3 + age_4 + age_5 + age_6) %>% 
-  mutate(hatchery = total - wild)
-
 # update data (from prior year; code can be run in one chunk)-------------------
 ## load existing input files (prior year)
 load(
@@ -298,11 +201,11 @@ willChsRet.dat <- rbind(
 )
 
 #### insert new values into data frame
-willChsRet.dat[nrow(willChsRet.dat) - 1, 3] = age3_col
-willChsRet.dat[nrow(willChsRet.dat) - 2, 4] = age4_col
-willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = age5_col
-willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = age6_col
-willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = age3_will
+willChsRet.dat[nrow(willChsRet.dat) - 1, 3] = as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_3)))
+willChsRet.dat[nrow(willChsRet.dat) - 2, 4] = as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_4)))
+willChsRet.dat[nrow(willChsRet.dat) - 3, 5] = as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_5)))
+willChsRet.dat[nrow(willChsRet.dat) - 4, 6] = as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_6)))
+willChsRet.dat[nrow(willChsRet.dat) - 1, 7] = as.numeric(subset(comp_rr, catch == "Willamette Falls Count", select = c(age_3)))
 willChsRet.dat[nrow(willChsRet.dat), 8] = age2_will
 
 ### Willamette covariate data
@@ -327,7 +230,7 @@ sp_pdo <- subset(
   year >= 1998
 )
 
-sp_pdo <- head(sp_pdo, -1)
+sp_pdo <- head(sp_pdo, -1) ####  THIS WILL NEED TO BE COMMENTED-OUT IN FINAL
 
 #### time series development
 ##### current time series (reporting began in mig. yr. 1998)
@@ -363,16 +266,14 @@ time.hwProp <- data.frame(
   ret_yr = curr_year
 )
 
-#### create variable (total return to CRM) representing denominator in clp_rt
-clp_rt_denom <- as.numeric(
-  age3_col + 
-    age4_col + 
-    age5_col + 
-    age6_col
-)
-
 #### calculate the unclipped rate for the current return year
-clp_rt <- clp_rt_num/clp_rt_denom
+clp_rt <- as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(wild)))/
+  as.numeric(
+  as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_3))) + 
+    as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_4))) + 
+    as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_5))) + 
+    as.numeric(subset(comp_rr, catch == "Run Entering Columbia", select = c(age_6)))
+)
 
 #### append current year (time) to loaded data frame
 willChsHWprop.dat <- rbind(
@@ -380,7 +281,7 @@ willChsHWprop.dat <- rbind(
   setNames(
     c(
       time.hwProp,
-      rep(NA, 3)
+      rep(NA, 2)
     ),
     names(willChsHWprop.dat)
   )
@@ -389,7 +290,6 @@ willChsHWprop.dat <- rbind(
 #### insert new values into data frame
 willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
 willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
-willChsHWprop.dat[nrow(willChsHWprop.dat), 5] = clp_rt_num
 
 ### Clackamas return data
 #### create time variable
@@ -410,15 +310,18 @@ clackChsRet.dat <- rbind(
 )
 
 #### insert new values into data frame
-clackChsRet.dat[nrow(clackChsRet.dat), 2] = age3_clack
-clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = age4_clack
-clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = age5_clack
-clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = age6_clack
-clackChsRet.dat[nrow(clackChsRet.dat), 6] = age3_clack + age4_clack +
-  age5_clack + age6_clack
+clackChsRet.dat[nrow(clackChsRet.dat), 2] = as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_3)))
+clackChsRet.dat[nrow(clackChsRet.dat) - 1, 3] = as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_4)))
+clackChsRet.dat[nrow(clackChsRet.dat) - 2, 4] = as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_5)))
+clackChsRet.dat[nrow(clackChsRet.dat) - 3, 5] = as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_6)))
+clackChsRet.dat[nrow(clackChsRet.dat), 6] = as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_3))) +
+  as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_4))) +
+  as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_5))) +
+  as.numeric(subset(comp_rr, catch == "Run Entering Clackamas", select = c(age_6)))
 
 ## save input data (.rda)
-save(willChsRet.dat,
+save(comp_rr,
+     willChsRet.dat,
      willChsCov.dat,
      willChsHWprop.dat,
      clackChsRet.dat,
