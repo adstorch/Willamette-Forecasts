@@ -15,8 +15,13 @@ if (!require(install.load)) {
 
 install.load::install_load(packages)
 
+
+# define current return year ---------------------------------------------------
+curr_year <- 2022
+
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
+source("Exogenous functions\\openFiles_fun.R")
 source("Exogenous functions\\dataManip_fun.R")
 
 # new data entry ---------------------------------------------------------------
@@ -27,6 +32,11 @@ source("Exogenous functions\\dataManip_fun.R")
 ## monthly counts at Willamette Falls. Select and copy the value for
 ## "Mini Jacks" corresponding to the row for August 15 (the value will be copied
 ## to the clipboard).  Run the corresponding code below.
+
+## open excel files needed to define variables (below)
+### files must be saved according to the naming convention in:
+### ~.Input\Background Data\
+openFiles_fun(curr_year)
 
 ## Willamette return data
 ### age-2 (mini jack) count at Willamette Falls
@@ -130,5 +140,4 @@ p_yr_ret <- as.numeric(
 )
 
 # data manipulation (function) --------------------------------------------
-## set current return year in parentheses
-dataManip_fun(2022)
+dataManip_fun(curr_year)
