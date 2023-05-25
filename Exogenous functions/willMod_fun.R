@@ -760,9 +760,9 @@ willMod_fun <- function(curr_year){
   ### create data frame to store output
   willComb.pred.out <- data.frame(
     model=character(),
-    mean.pred.willAge6=numeric(),
-    lwrHDI.willAge6=numeric(),
-    UprHDI.willAge6=numeric(),
+    mean.pred.will=numeric(),
+    lwrHDI.will=numeric(),
+    uprHDI.will=numeric(),
     stringsAsFactors = FALSE
   )
   

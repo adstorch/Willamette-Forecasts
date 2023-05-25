@@ -50,7 +50,7 @@ curr_year <- 2022
 ### load data files
 #### define file path (make sure: Tools->Global Options...->R Markdown->
 #### Evaluate chunks in directory = "Project")
-inPath <- 'Input\\~Input Data\\'
+inPath <- 'Input\\~Input Data\\Input Tables\\'
 predPath <- 'Output\\Predictions\\'
 rrPath <- "Input\\~Input Data\\Run Reconstruction\\"
 
@@ -117,10 +117,473 @@ prior.clack.predns <- readRDS(
      
 ```
   
-## Summary of `r as.numeric(format(Sys.Date(), '%Y'))-1` Willamette River spring Chinook return
+## Summary of `r as.numeric(curr_year)` Willamette River spring Chinook return
 
 ### Subsection Test
 
-The total Willamette River spring Chinook return to the Columbia River mouth during `r as.numeric(format(Sys.Date(), '%Y'))-1` is estimated to be `r format(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6], big.mark = ",")` fish (Table 1).  An estimated `r format(willChsHWprop.dat[nrow(willChsHWprop.dat),5], big.mark = ",")` of these fish were unmarked (~`r percent(willChsHWprop.dat[nrow(willChsHWprop.dat),4])`).  The `r as.numeric(format(Sys.Date(), '%Y'))-1` total reconstructed return was approximately `r percent(as.numeric(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6])/as.numeric(prior.will.predns[6,2]))` of forecast.  The Clackamas River component was approximately `r percent(as.numeric(clackChsRet.dat[nrow(clackChsRet.dat),6])/as.numeric(prior.clack.predns[,2]))` of forecast, with `r format(clackChsRet.dat[nrow(clackChsRet.dat),6], big.mark = ",")` spring Chinook returning to the Clackamas River compared to `r format(as.numeric(prior.clack.predns[,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.clack.predns[,3]), big.mark = ",")`–`r format(as.numeric(prior.clack.predns[,4]), big.mark = ",")`) fish expected.
+The total Willamette River spring Chinook return to the Columbia River mouth during `r as.numeric(curr_year)` is estimated to be `r format(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6], big.mark = ",")` fish (Table 1).  An estimated `r format(as.numeric(subset(willClackRR.dat, catch=="Run Entering Columbia", select = c(wild))), big.mark = ",")` of these fish were unmarked (~`r percent(willChsHWprop.dat[nrow(willChsHWprop.dat),4])`).  The `r as.numeric(curr_year)` total reconstructed return was approximately `r percent(as.numeric(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6])/as.numeric(prior.will.predns[6,2]))` of forecast.  The Clackamas River component was approximately `r percent(as.numeric(clackChsRet.dat[nrow(clackChsRet.dat),6])/as.numeric(prior.clack.predns[,2]))` of forecast, with `r format(clackChsRet.dat[nrow(clackChsRet.dat),6], big.mark = ",")` spring Chinook returning to the Clackamas River compared to `r format(as.numeric(prior.clack.predns[,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.clack.predns[,3]), big.mark = ",")`–`r format(as.numeric(prior.clack.predns[,4]), big.mark = ",")`) fish expected.
 
-The total return of adipose-fin-marked hatchery fish to the Columbia River mouth in `r as.numeric(format(Sys.Date(), '%Y'))-1` is estimated to be `r format(as.numeric(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6])-as.numeric(willChsHWprop.dat[nrow(willChsHWprop.dat),5]), big.mark = ",")`, compared to `r format(as.numeric(prior.will.predns[12,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.will.predns[12,3]), big.mark = ",")`–`r format(as.numeric(prior.will.predns[12,4]), big.mark = ",")`) fish expected.  Counts at the Willamette Falls fishway indicate that 31,937 fin-marked hatchery fish and 6,692 unmarked fish passed the fish ladder.  The full reconstruction of the 2022 return is shown in Table 2.
+The total return of adipose-fin-marked hatchery fish to the Columbia River mouth in `r as.numeric(curr_year)` is estimated to be `r format(as.numeric(subset(willClackRR.dat, catch=="Run Entering Columbia", select = c(hatchery))), big.mark = ",")`, compared to `r format(as.numeric(prior.will.predns[12,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.will.predns[12,3]), big.mark = ",")`–`r format(as.numeric(prior.will.predns[12,4]), big.mark = ",")`) fish expected.  Counts at the Willamette Falls fishway indicate that `r format(as.numeric(subset(willClackRR.dat, catch=="Willamette Falls Count", select = c(hatchery))), big.mark = ",")` fin-marked hatchery fish and `r format(as.numeric(subset(willClackRR.dat, catch=="Willamette Falls Count", select = c(wild))), big.mark = ",")` unmarked fish passed the fish ladder.  The full reconstruction of the 2022 return is shown in Table 2.
+
+```{r Table-mgmt rep T1 data, echo=FALSE}
+T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
+                              "95% CrI",
+                              paste0(curr_year, " Reconstructed Return")),
+                 
+                 age_3 = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns,
+                         model=="Willamette Age-3",
+                         select = c(mean.pred.will)
+                         )
+                       ),
+                     big.mark = ","
+                     ),
+                            paste0(
+                              ifelse(
+                                as.numeric(
+                                  subset(
+                                    prior.will.predns,
+                                    model=="Willamette Age-3",
+                                    select = c(lwrHDI.will)
+                                    )
+                                  )<0,0,
+                                format(
+                                  as.numeric(
+                                    subset(
+                                      prior.will.predns,
+                                      model=="Willamette Age-3",
+                                      select = c(lwrHDI.will)
+                                      )
+                                    ),
+                                  big.mark = ","
+                                  )
+                                ),
+                              "-",
+                              ifelse(
+                                as.numeric(
+                                  subset(
+                                    prior.will.predns, 
+                                    model=="Willamette Age-3", 
+                                    select = c(UprHDI.will)
+                                    )
+                                  )<0,
+                                0,
+                                format(
+                                  as.numeric(
+                                    subset(
+                                      prior.will.predns, 
+                                      model=="Willamette Age-3", 
+                                      select = c(UprHDI.will)
+                                      )
+                                    ), 
+                                  big.mark = ","
+                                  )
+                                ),
+                              sep=""
+                              ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(age_3)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   ),
+                 
+                 age_4 = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns, 
+                         model=="Willamette Age-4", 
+                         select = c(mean.pred.will)
+                         )
+                       ), 
+                     big.mark = ","
+                     ),
+                   paste0(
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-4", 
+                           select = c(lwrHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Age-4", 
+                             select = c(lwrHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     "-",
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-4", 
+                           select = c(UprHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(prior.will.predns, 
+                                  model=="Willamette Age-4", 
+                                  select = c(UprHDI.will)
+                                  )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     sep=""
+                     ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(age_4)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   ),
+                 
+                 age_5 = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns, 
+                         model=="Willamette Age-5", 
+                         select = c(mean.pred.will)
+                         )
+                       ), 
+                     big.mark = ","
+                     ),
+                   paste0(
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-5", 
+                           select = c(lwrHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Age-5", 
+                             select = c(lwrHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     "-",
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-5", 
+                           select = c(UprHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Age-5", 
+                             select = c(UprHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     sep=""
+                     ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(age_5)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   ),
+                 
+                 age_6 = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns, 
+                         model=="Willamette Age-6", 
+                         select = c(mean.pred.will)
+                         )
+                       ), 
+                     big.mark = ","
+                     ),
+                   paste0(
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-6", 
+                           select = c(lwrHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Age-6", 
+                             select = c(lwrHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     "-",
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Age-6", 
+                           select = c(UprHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Age-6", 
+                             select = c(UprHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     sep=""
+                     ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(age_6)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   ),
+                 
+                 
+                 
+                 adults = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns, 
+                         model=="Willamette Adults", 
+                         select = c(mean.pred.will)
+                         )
+                       ), 
+                     big.mark = ","
+                     ),
+                   paste0(
+                     ifelse(
+                       as.numeric(
+                         subset(prior.will.predns, 
+                                model=="Willamette Adults", 
+                                select = c(lwrHDI.will)
+                                )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Adults", 
+                             select = c(lwrHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     "-",
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Adults", 
+                           select = c(UprHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Adults", 
+                             select = c(UprHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     sep=""
+                     ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(adults)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   ),
+                 
+                 total = c(
+                   format(
+                     as.numeric(
+                       subset(
+                         prior.will.predns, 
+                         model=="Willamette Total", 
+                         select = c(mean.pred.will)
+                         )
+                       ), 
+                     big.mark = ","
+                     ),
+                   paste0(
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Total", 
+                           select = c(lwrHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Total", 
+                             select = c(lwrHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     "-",
+                     ifelse(
+                       as.numeric(
+                         subset(
+                           prior.will.predns, 
+                           model=="Willamette Total", 
+                           select = c(UprHDI.will)
+                           )
+                         )<0,
+                       0,
+                       format(
+                         as.numeric(
+                           subset(
+                             prior.will.predns, 
+                             model=="Willamette Total", 
+                             select = c(UprHDI.will)
+                             )
+                           ), 
+                         big.mark = ","
+                         )
+                       ),
+                     sep=""
+                     ),
+                   format(
+                     as.numeric(
+                       subset(
+                         willClackRR.dat, 
+                         catch=="Run Entering Columbia", 
+                         select = c(total)
+                         )
+                       ), 
+                     big.mark = ","
+                     )
+                   )
+                 )
+```
+
+```{r tab.cap=paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""), tab.id = "Table1", echo=FALSE, tab.cap.style = "Table Caption"}
+flextable(T1_mgmtRep) %>%
+  align(align = "center",
+        part = "all") %>%
+  valign(i = 1,
+         valign = "bottom",
+         part = "header") %>%
+  set_header_labels(year = "Year",
+                    rm_run_size = "River Mouth Run Size",
+                    tot_nt_impacts = "Total Non-treaty Impacts",
+                    tot_treat_impacts = "Total Treaty Impacts",
+                    tot_all_treat_harvest_rate = "Total Allowed Treaty Harvest Rate",
+                    tot_all_treat_harv = "Total Allowed Treaty Harvest (catch balance for non-treaty)",
+                    tot_act_treat_harv_rate = "Total Actual Treaty Harvest Rate") %>%
+  set_formatter(year = year_form,
+                rm_run_size = int_form,
+                tot_nt_impacts = int_form,
+                tot_treat_impacts = int_form,
+                tot_all_harvest_rate = harv_rt_form,
+                tot_all_treat_harv = int_form,
+                tot_act_treat_harv_rate = harv_rt_form) %>%
+  fontsize(size = 10,
+           part = "all") %>%
+  font(fontname = "Times New Roman",
+       part = "all") %>%
+  border_remove() %>%
+  hline(i=1,
+        part="header",
+        border = fp_border(color="black",
+                           width = 1)) %>%
+  hline_top(part="header",
+            border = fp_border(color="black",
+                               width = 2)) %>%
+  hline_bottom(part="body",
+               border = fp_border(color="black",
+                                  width = 2)) %>%
+  width(j = 1:7, 1) %>%
+  bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate, 
+       j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
+  add_footer_lines("Note: bold values indicate overage.") %>%
+  fontsize(size = 12, part = "footer") %>%
+  font(fontname = "Times New Roman",
+       part = "footer") %>%
+  padding(padding = 0, part = "footer")
+  # set_caption(
+  #   as_paragraph(
+  #     as_chunk(paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""),
+  #              props = fp_text_default(font.family = "Times New Roman",
+  #                                      font.size = 12))),
+  #   align_with_table = FALSE,
+  #   word_stylename = "Table Caption",
+  #   fp_p = table.caption.format,
+  #   autonum = autonumTab)
+```
