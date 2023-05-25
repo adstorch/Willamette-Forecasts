@@ -128,16 +128,5 @@ cope_rich <- as.numeric(
   )
 )
 
-## Willamette HW proportion data
-### prior years' TOTAL return (age-3 - age-6)
-### from prior years' "Big Sheet" ("Run Entering Columbia")
-p_yr_ret <- as.numeric(
-  gsub(
-    ",",
-    "",
-    read_clip()
-  )
-)
-
 # data manipulation (function) --------------------------------------------
 dataManip_fun(curr_year)

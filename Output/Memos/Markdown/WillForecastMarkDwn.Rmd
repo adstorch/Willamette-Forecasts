@@ -50,10 +50,21 @@ curr_year <- 2022
 ### load data files
 #### define file path (make sure: Tools->Global Options...->R Markdown->
 #### Evaluate chunks in directory = "Project")
-inPath <- 'Input/~Input Data/'
-predPath <- 'Output/Predictions/'
+inPath <- 'Input\\~Input Data\\'
+predPath <- 'Output\\Predictions\\'
+rrPath <- "Input\\~Input Data\\Run Reconstruction\\"
 
-#### input data
+#### run reconstruction tables
+willClackRR.dat <- readRDS(
+  paste(
+    rrPath,
+    curr_year,
+    'willClackRRData.rds',
+    sep = ""
+  )
+)
+
+#### model input data
 load(
   file = paste(
     inPath,
@@ -63,7 +74,8 @@ load(
   )
 )
 
-#### new (curr_year+1) predictions
+#### prediction tables
+##### new Willamette (curr_year+1) predictions
 curr.will.predns <- readRDS(
   paste(
     predPath,
@@ -73,7 +85,7 @@ curr.will.predns <- readRDS(
   )
 )
 
-#### prior years' (curr_year) predictions
+##### prior years' Willamette (curr_year) predictions
 prior.will.predns <- readRDS(
   paste(
     predPath,
@@ -83,7 +95,7 @@ prior.will.predns <- readRDS(
   )
 )
 
-#### new (curr_year+1) predictions
+##### new clackamas (curr_year+1) predictions
 curr.clack.predns <- readRDS(
   paste(
     predPath,
@@ -93,7 +105,7 @@ curr.clack.predns <- readRDS(
   )
 )
 
-#### prior years' (curr_year) predictions
+##### prior years' Clackamas (curr_year) predictions
 prior.clack.predns <- readRDS(
   paste(
     predPath,

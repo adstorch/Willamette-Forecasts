@@ -62,16 +62,27 @@ dataManip_fun <- function(curr_year){
     mutate(hatchery = total - wild)
   
   ## save input data (.rda)
-  save(comp_rr,
-       file=paste(
-         "Input\\~Input Data\\Run Reconstruction\\",
-         curr_year,
-         "willClackRRData.rda",
-         sep=""
-       )
+  saveRDS(
+    comp_rr,
+    file = paste(
+      'Input\\~Input Data\\Run Reconstruction\\',
+      curr_year,
+      'willClackRRData.rds',
+      sep = ""
+    )
   )
   
   # update data ------------------------------------------------------------------
+  ## load prior years' run reconstruction table
+  prior.willClackRR.dat <- readRDS(
+    paste(
+      "Input\\~Input Data\\Run Reconstruction\\",
+      curr_year-1,
+      'willClackRRData.rds',
+      sep = ""
+    )
+  )
+  
   ## load existing input files (prior year)
   load(
     file = paste(
@@ -249,7 +260,35 @@ dataManip_fun <- function(curr_year){
   )
   
   #### insert new values into data frame
-  willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = p_yr_ret
+  willChsHWprop.dat[nrow(willChsHWprop.dat), 3] = as.numeric(
+    subset(
+      prior.willClackRR.dat,
+      catch == "Run Entering Columbia",
+      select = c(age_3)
+    )
+  ) +
+    as.numeric(
+      subset(
+        prior.willClackRR.dat,
+        catch == "Run Entering Columbia",
+        select = c(age_4)
+      )
+    ) +
+    as.numeric(
+      subset(
+        prior.willClackRR.dat,
+        catch == "Run Entering Columbia",
+        select = c(age_5)
+      )
+    ) +
+    as.numeric(
+      subset(
+        prior.willClackRR.dat,
+        catch == "Run Entering Columbia",
+        select = c(age_6)
+      )
+    )
+  
   willChsHWprop.dat[nrow(willChsHWprop.dat), 4] = clp_rt
   
   ### Clackamas return data
