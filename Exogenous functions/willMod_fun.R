@@ -1,15 +1,15 @@
 willMod_fun <- function(curr_year){
   
-  # load files --------------------------------------------------------------
+  # load input files -----------------------------------------------------------
   load(
     file = paste(
-      inPath,
+      "Input\\~Input Data\\Input Tables\\",
       curr_year,
       "willClackInpData.rda",
       sep=""
     )
   )
-  # data manipulation ------------------------------------------------------------
+  # data manipulation ----------------------------------------------------------
   ## age 3
   ### generate a data frame to fit model
   willAge3Fit.dat <- data.frame(
@@ -109,7 +109,7 @@ willMod_fun <- function(curr_year){
     1
   )
   
-  # fit model and generate prediction --------------------------------------------
+  # fit model and generate prediction ------------------------------------------
   ## create character string defining model
   willAge3Mod.name <- "Willamette Age-3"
   willAge4Mod.name <- "Willamette Age-4"

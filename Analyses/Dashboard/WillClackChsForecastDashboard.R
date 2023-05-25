@@ -15,7 +15,6 @@ if (!require(install.load)) {
 
 install.load::install_load(packages)
 
-
 # define current return year ---------------------------------------------------
 curr_year <- 2022
 
@@ -24,6 +23,7 @@ source("Exogenous functions\\round_fun.R")
 source("Exogenous functions\\openFiles_fun.R")
 source("Exogenous functions\\dataManip_fun.R")
 source("Exogenous functions\\willMod_fun.R")
+source("Exogenous functions\\clackMod_fun.R")
 
 # new data entry ---------------------------------------------------------------
 # this has to be done manually (line-by-line) using the "read_clip" function
@@ -134,6 +134,7 @@ cope_rich <- as.numeric(
 dataManip_fun(curr_year)
 
 ## Willamette model(s)
-willMod_fun.R(curr_year)
+willMod_fun(curr_year)
 
 ## Clackamas model
+clackMod_fun(curr_year)
