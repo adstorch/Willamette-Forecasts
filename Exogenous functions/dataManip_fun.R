@@ -72,7 +72,7 @@ dataManip_fun <- function(curr_year){
     )
   )
   
-  # update data ------------------------------------------------------------------
+  # update data ----------------------------------------------------------------
   ## load prior years' run reconstruction table
   prior.willClackRR.dat <- readRDS(
     paste(
