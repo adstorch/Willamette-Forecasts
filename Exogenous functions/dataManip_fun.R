@@ -382,4 +382,6 @@ dataManip_fun <- function(curr_year){
          sep=""
        )
   )
+  ## close Excel files
+  system("taskkill /IM Excel.exe")
 }
