@@ -172,7 +172,7 @@ dataManip_fun <- function(curr_year){
     year >= 1998
   )
   
-  sp_pdo <- head(sp_pdo, -1) ####  THIS WILL NEED TO BE COMMENTED-OUT IN FINAL
+  sp_pdo <- head(sp_pdo, -2) ####  THIS WILL NEED TO BE COMMENTED-OUT IN FINAL
   
   #### time series development
   ##### current time series (reporting began in mig. yr. 1998)

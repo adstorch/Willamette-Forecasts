@@ -41,6 +41,8 @@ library(officedown)
 library(data.table)
 library(berryFunctions)
 library(scales)
+
+set_flextable_defaults(fonts_ignore=TRUE)
 ```
 
 ```{r echo=FALSE}
@@ -161,13 +163,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                                   big.mark = ","
                                   )
                                 ),
-                              "-",
+                              "\u2013",
                               ifelse(
                                 as.numeric(
                                   subset(
                                     prior.will.predns, 
                                     model=="Willamette Age-3", 
-                                    select = c(UprHDI.will)
+                                    select = c(uprHDI.will)
                                     )
                                   )<0,
                                 0,
@@ -176,7 +178,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                                     subset(
                                       prior.will.predns, 
                                       model=="Willamette Age-3", 
-                                      select = c(UprHDI.will)
+                                      select = c(uprHDI.will)
                                       )
                                     ), 
                                   big.mark = ","
@@ -228,13 +230,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          big.mark = ","
                          )
                        ),
-                     "-",
+                     "\u2013",
                      ifelse(
                        as.numeric(
                          subset(
                            prior.will.predns, 
                            model=="Willamette Age-4", 
-                           select = c(UprHDI.will)
+                           select = c(uprHDI.will)
                            )
                          )<0,
                        0,
@@ -242,7 +244,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          as.numeric(
                            subset(prior.will.predns, 
                                   model=="Willamette Age-4", 
-                                  select = c(UprHDI.will)
+                                  select = c(uprHDI.will)
                                   )
                            ), 
                          big.mark = ","
@@ -294,13 +296,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          big.mark = ","
                          )
                        ),
-                     "-",
+                     "\u2013",
                      ifelse(
                        as.numeric(
                          subset(
                            prior.will.predns, 
                            model=="Willamette Age-5", 
-                           select = c(UprHDI.will)
+                           select = c(uprHDI.will)
                            )
                          )<0,
                        0,
@@ -309,7 +311,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                            subset(
                              prior.will.predns, 
                              model=="Willamette Age-5", 
-                             select = c(UprHDI.will)
+                             select = c(uprHDI.will)
                              )
                            ), 
                          big.mark = ","
@@ -361,13 +363,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          big.mark = ","
                          )
                        ),
-                     "-",
+                     "\u2013",
                      ifelse(
                        as.numeric(
                          subset(
                            prior.will.predns, 
                            model=="Willamette Age-6", 
-                           select = c(UprHDI.will)
+                           select = c(uprHDI.will)
                            )
                          )<0,
                        0,
@@ -376,7 +378,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                            subset(
                              prior.will.predns, 
                              model=="Willamette Age-6", 
-                             select = c(UprHDI.will)
+                             select = c(uprHDI.will)
                              )
                            ), 
                          big.mark = ","
@@ -429,13 +431,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          big.mark = ","
                          )
                        ),
-                     "-",
+                     "\u2013",
                      ifelse(
                        as.numeric(
                          subset(
                            prior.will.predns, 
                            model=="Willamette Adults", 
-                           select = c(UprHDI.will)
+                           select = c(uprHDI.will)
                            )
                          )<0,
                        0,
@@ -444,7 +446,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                            subset(
                              prior.will.predns, 
                              model=="Willamette Adults", 
-                             select = c(UprHDI.will)
+                             select = c(uprHDI.will)
                              )
                            ), 
                          big.mark = ","
@@ -496,13 +498,13 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                          big.mark = ","
                          )
                        ),
-                     "-",
+                     "\u2013",
                      ifelse(
                        as.numeric(
                          subset(
                            prior.will.predns, 
                            model=="Willamette Total", 
-                           select = c(UprHDI.will)
+                           select = c(uprHDI.will)
                            )
                          )<0,
                        0,
@@ -511,7 +513,7 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                            subset(
                              prior.will.predns, 
                              model=="Willamette Total", 
-                             select = c(UprHDI.will)
+                             select = c(uprHDI.will)
                              )
                            ), 
                          big.mark = ","
@@ -532,29 +534,23 @@ T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
                    )
                  )
 ```
-
-```{r tab.cap=paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""), tab.id = "Table1", echo=FALSE, tab.cap.style = "Table Caption"}
-flextable(T1_mgmtRep) %>%
+Table 1. `r paste0(curr_year," forecasted and reconstructed return of Willamette River spring Chinook to Columbia River mouth",sep="")`.
+```{r Table 1, echo=FALSE, ft.arraystretch = 1.05}
+flextable(T1) %>% 
   align(align = "center",
         part = "all") %>%
   valign(i = 1,
          valign = "bottom",
          part = "header") %>%
-  set_header_labels(year = "Year",
-                    rm_run_size = "River Mouth Run Size",
-                    tot_nt_impacts = "Total Non-treaty Impacts",
-                    tot_treat_impacts = "Total Treaty Impacts",
-                    tot_all_treat_harvest_rate = "Total Allowed Treaty Harvest Rate",
-                    tot_all_treat_harv = "Total Allowed Treaty Harvest (catch balance for non-treaty)",
-                    tot_act_treat_harv_rate = "Total Actual Treaty Harvest Rate") %>%
-  set_formatter(year = year_form,
-                rm_run_size = int_form,
-                tot_nt_impacts = int_form,
-                tot_treat_impacts = int_form,
-                tot_all_harvest_rate = harv_rt_form,
-                tot_all_treat_harv = int_form,
-                tot_act_treat_harv_rate = harv_rt_form) %>%
-  fontsize(size = 10,
+  padding(padding = 0, part = "all") %>% 
+  set_header_labels(rowLabel = "",
+                    age_3 = "Age 3",
+                    age_4 = "Age 4",
+                    age_5 = "Age 5",
+                    age_6 = "Age 6",
+                    adults = "Totaladults",  
+                    total = "Totaljacks+adults") %>%
+  fontsize(size = 9,
            part = "all") %>%
   font(fontname = "Times New Roman",
        part = "all") %>%
@@ -562,28 +558,33 @@ flextable(T1_mgmtRep) %>%
   hline(i=1,
         part="header",
         border = fp_border(color="black",
-                           width = 1)) %>%
+                           width = 0.5)) %>%
+  hline(i=2,
+        part="body",
+        border = fp_border(color="black",
+                           width = 0.5)) %>%
   hline_top(part="header",
             border = fp_border(color="black",
-                               width = 2)) %>%
+                               width = 1.0)) %>%
   hline_bottom(part="body",
                border = fp_border(color="black",
-                                  width = 2)) %>%
-  width(j = 1:7, 1) %>%
-  bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate, 
-       j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
-  add_footer_lines("Note: bold values indicate overage.") %>%
-  fontsize(size = 12, part = "footer") %>%
-  font(fontname = "Times New Roman",
-       part = "footer") %>%
-  padding(padding = 0, part = "footer")
+                                  width = 1.0)) %>%
+  width(j = 1, 1.4) %>% 
+  width(j = 2:7, 0.9)
+  # bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate,
+  #      j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
+  # add_footer_lines("Note: bold values indicate overage.") %>%
+  # fontsize(size = 12, part = "footer") %>%
+  # font(fontname = "Times New Roman",
+  #      # part = "footer") %>%
+  # # padding(padding = 0, part = "footer")
   # set_caption(
   #   as_paragraph(
-  #     as_chunk(paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""),
+  #     as_chunk(paste0(curr_year," forecasted and reconstructed return of Willamette River spring Chinook to Columbia River mouth",sep=""),
   #              props = fp_text_default(font.family = "Times New Roman",
   #                                      font.size = 12))),
-  #   align_with_table = FALSE,
-  #   word_stylename = "Table Caption",
-  #   fp_p = table.caption.format,
-  #   autonum = autonumTab)
+  #   align_with_table = TRUE,
+  #   word_stylename = "Table Caption")
+  #   # fp_p = table.caption.format)
+  #   # autonum = autonumTab)
 ```
