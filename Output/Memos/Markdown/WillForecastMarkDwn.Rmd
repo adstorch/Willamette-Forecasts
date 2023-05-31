@@ -548,8 +548,8 @@ flextable(T1) %>%
                     age_4 = "Age 4",
                     age_5 = "Age 5",
                     age_6 = "Age 6",
-                    adults = "Totaladults",  
-                    total = "Totaljacks+adults") %>%
+                    adults = "",  
+                    total = "") %>%
   fontsize(size = 9,
            part = "all") %>%
   font(fontname = "Times New Roman",
@@ -570,7 +570,13 @@ flextable(T1) %>%
                border = fp_border(color="black",
                                   width = 1.0)) %>%
   width(j = 1, 1.4) %>% 
-  width(j = 2:7, 0.9)
+  width(j = 2:7, 0.9) %>% 
+  compose(part = "header", i = 1, j = 6,
+         value = as_paragraph("Total",
+                              as_sub("adults"))) %>% 
+  compose(part = "header", i = 1, j = 7,
+         value = as_paragraph("Total",
+                              as_sub("adults+jacks")))
   # bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate,
   #      j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
   # add_footer_lines("Note: bold values indicate overage.") %>%
