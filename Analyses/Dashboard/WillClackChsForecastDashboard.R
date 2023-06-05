@@ -140,7 +140,6 @@ willMod_fun(curr_year)
 ## Clackamas model
 clackMod_fun(curr_year)
 
-
 prior.will.predns <- prior.will.predns %>% 
   rename("model" = "model",
          "mean.pred.will" = "mean.pred.willAge6",
