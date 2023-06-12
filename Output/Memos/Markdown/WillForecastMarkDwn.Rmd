@@ -10,10 +10,9 @@ fontsize: 12pt
 geometry: margin=0.8in
 header-includes:
    - \linespread{0.90}
-
 from: Adam Storch
 to: Files
-subject: "`r paste0(as.numeric(format(Sys.Date(), '%Y'))-1, ' Willamette River spring Chinook Run and ',as.numeric(format(Sys.Date(), '%Y')), ' forecast')`"
+subject: "`r paste0(as.numeric(format(Sys.Date(), '%Y')), ' Willamette River spring Chinook Run and ',as.numeric(format(Sys.Date(), '%Y'))+1, ' forecast')`"
 date: "`r format(Sys.Date(), '%d %B %Y')`"
 memorandum: true
 graphics: true
@@ -47,7 +46,7 @@ set_flextable_defaults(fonts_ignore=TRUE)
 
 ```{r echo=FALSE}
 ### define current run year (value has to be entered manually)
-curr_year <- 2022
+curr_year <- 2023
 
 ### load data files
 #### define file path (make sure: Tools->Global Options...->R Markdown->

@@ -17,7 +17,7 @@ if (!require(install.load)) {
 install.load::install_load(packages)
 
 # define current return year ---------------------------------------------------
-curr_year <- 2021
+curr_year <- 2023
 
 # call exogenous functions -----------------------------------------------------
 source("Exogenous functions\\round_fun.R")
@@ -139,9 +139,3 @@ willMod_fun(curr_year)
 
 ## Clackamas model
 clackMod_fun(curr_year)
-
-prior.will.predns <- prior.will.predns %>% 
-  rename("model" = "model",
-         "mean.pred.will" = "mean.pred.willAge6",
-         "lwrHDI.will" = "lwrHDI.willAge6",
-         "uprHDI.will" = "UprHDI.willAge6")
