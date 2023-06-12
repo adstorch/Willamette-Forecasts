@@ -118,68 +118,96 @@ prior.clack.predns <- readRDS(
 )
 
 ##### FMEP hatchery escapement goals (will have to be updated with new BA)
-hat_esc_goals <- data.frame(hatch_pred_low = c(0,
-                                               seq(40000,90000,10000),
-                                               100001),
-                            hatch_pred_hi = c(seq(39999,89999,10000),
-                                              100000,
-                                              1000000),
-                            will_falls = c(20000,
-                                           22000,
-                                           24000,
-                                           26500,
-                                           29000,
-                                           32000,
-                                           35000,
-                                           39000),
-                            clack = c(3000,
-                                      3300,
-                                      3600,
-                                      4000,
-                                      4400,
-                                      4900,
-                                      5400,
-                                      6000),
-                            tot = c(23000,
-                                    25300,
-                                    27600,
-                                    30500,
-                                    33400,
-                                    36900,
-                                    44000,
-                                    45000)
-                            )
+hat_esc_goals <- data.frame(
+  hatch_pred_low = c(
+    0,
+    seq(
+      40000,
+      90000,
+      10000
+      ),
+    100001
+    ),
+  hatch_pred_hi = c(
+    seq(
+      39999,
+      89999,
+      10000
+      ),
+    100000,
+    1000000
+    ),
+  will_falls = c(
+    20000,
+    22000,
+    24000,
+    26500,
+    29000,
+    32000,
+    35000,
+    39000
+    ),
+  clack = c(
+    3000,
+    3300,
+    3600,
+    4000,
+    4400,
+    4900,
+    5400,
+    6000
+    ),
+  tot = c(
+    23000,
+    25300,
+    27600,
+    30500,
+    33400,
+    36900,
+    44000,
+    45000
+    )
+  )
 
 ##### FMEP hatchery allocation (will have to be updated with new BA)
-hat_alloc <- data.frame(hatch_pred_low = c(0,
-                                           23000,
-                                           40000,
-                                           45000,
-                                           50000,
-                                           60000,
-                                           75000),
-                            hatch_pred_hi = c(22999,
-                                              39999,
-                                              44999,
-                                              49999,
-                                              59999,
-                                              75000,
-                                              1000000),
-                            rec_fish = c(0,
-                                      1.00,
-                                      0.85,
-                                      0.80,
-                                      0.76,
-                                      0.73,
-                                      0.70),
-                            comm_fish = c(0.00,
-                                    0.00,
-                                    0.15,
-                                    0.20,
-                                    0.24,
-                                    0.27,
-                                    0.30)
-                        )
+hat_alloc <- data.frame(
+  hatch_pred_low = c(
+    0.00,
+    23000,
+    40000,
+    45000,
+    50000,
+    60000,
+    75000
+    ),
+  hatch_pred_hi = c(
+    22999,
+    39999,
+    44999,
+    49999,
+    59999,
+    75000,
+    1000000
+    ),
+  rec_fish = c(
+    0.00,
+    1.00,
+    0.85,
+    0.80,
+    0.76,
+    0.73,
+    0.70
+    ),
+  comm_fish = c(
+    0.00,
+    0.00,
+    0.15,
+    0.20,
+    0.24,
+    0.27,
+    0.30
+    )
+  )
      
 ```
   
@@ -639,22 +667,6 @@ flextable(T1) %>%
   compose(part = "header", i = 1, j = 7,
          value = as_paragraph("Total",
                               as_sub("adults+jacks")))
-  # bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate,
-  #      j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
-  # add_footer_lines("Note: bold values indicate overage.") %>%
-  # fontsize(size = 12, part = "footer") %>%
-  # font(fontname = "Times New Roman",
-  #      # part = "footer") %>%
-  # # padding(padding = 0, part = "footer")
-  # set_caption(
-  #   as_paragraph(
-  #     as_chunk(paste0(curr_year," forecasted and reconstructed return of Willamette River spring Chinook to Columbia River mouth",sep=""),
-  #              props = fp_text_default(font.family = "Times New Roman",
-  #                                      font.size = 12))),
-  #   align_with_table = TRUE,
-  #   word_stylename = "Table Caption")
-  #   # fp_p = table.caption.format)
-  #   # autonum = autonumTab)
 ```
 To project hatchery returns in `r as.numeric(curr_year)`, I assumed `r percent(as.numeric(prior.will.predns[nrow(prior.will.predns),2]))` of the total return would be comprised of unmarked fish based on a prediction from a Bayesian implementation of a univariate time-series model fit to non-clipped rates from 2008 through `r as.numeric(curr_year)-1`. The actual (reconstructed) rate for the full `r as.numeric(curr_year)` return is estimated to have been approximately `r percent(as.numeric(willChsHWprop.dat[nrow(willChsHWprop.dat),4]))`.
 
