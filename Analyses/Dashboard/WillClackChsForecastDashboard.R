@@ -8,7 +8,8 @@ packages <- c("openxlsx",
               "dplyr",
               "stringr",
               "data.table",
-              "flextable")
+              "flextable",
+              "rmarkdown")
 
 if (!require(install.load)) {
   install.packages("install.load")
