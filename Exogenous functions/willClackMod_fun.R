@@ -1,7 +1,7 @@
 
-# willClackMod_fun <- function(curr_year){
+willClackMod_fun <- function(curr_year){
 
-curr_year <- 2022
+# curr_year <- 2022
   
   # load input files -----------------------------------------------------------
   load(
@@ -1464,4 +1464,4 @@ curr_year <- 2022
       sep = ""
     )
   )
-# }
+}

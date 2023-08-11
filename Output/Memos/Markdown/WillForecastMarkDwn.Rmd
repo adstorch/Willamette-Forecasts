@@ -1,25 +1,31 @@
 ---
+title: "`r format(Sys.time(), '%Y')` Technical Advisory Committee Annual Report:  \nAbundance, Stock Status, Harvest  \nand Endangered Species Act Impacts"
+subtitle: "Summary of `r as.numeric(format(Sys.time(), '%Y'))-1` Fisheries and Fish Runs"
+author: "Prepared by the *U.S. v Oregon* Technical Advisory Committee"
+date: "For the  \nMay 12-14, `r format(Sys.time(), '%Y')`  \nPolicy Committee Meeting"
 output: 
-  pdf_document:
-    citation_package: natbib
-    keep_tex: false
-    latex_engine: pdflatex
-    template: "svm-latex-memo.tex"
-fontfamily: times
-fontsize: 12pt
-geometry: margin=0.8in
-header-includes:
-   - \linespread{0.90}
-from: Adam Storch
-to: Files
-subject: "`r paste0(as.numeric(format(Sys.Date(), '%Y')), ' Willamette River spring Chinook Run and ',as.numeric(format(Sys.Date(), '%Y'))+1, ' forecast')`"
-date: "`r format(Sys.Date(), '%d %B %Y')`"
-memorandum: true
-graphics: true
-width: 0.2
-logoposition: left
-logo: "odfwLogo.v.2.png"
+   officedown::rdocx_document:
+    reference_docx: TACAnnRepTempEX_style.docx
+    toc: true
+    tables:
+      style: Table
+      topcation: true
+      tab.lp: 'tab:'
+      caption:
+        style: Table Caption
+        pre: 'Table '
+        sep: '. '
+        fp_text: !expr officer::fp_text_lite(bold = FALSE, shading.color = "yellow")
+    plots:
+      style: Normal
+      align: center
+      caption:
+        style: Image Caption
+        pre: 'Figure '
+        sep: '. '
+        fp_text: !expr officer::fp_text_lite(bold = FALSE, shading.color = "yellow")
 ---
+
 ```{r echo=FALSE}
 harv_rt_form = function(x) ifelse(is.na(x),"", sprintf("%.1f%%", x*100))
 harv_rt_formSm = function(x) ifelse(is.na(x),"", sprintf("%.2f%%", x*100))
@@ -28,618 +34,1229 @@ int_deci_form = function(x) ifelse(is.na(x),"", formatC(x,digits = 1, format = "
 year_form = function(x) ifelse(is.na(x),"", formatC(x,digits = 0, format = "f"))
 ```
 
+```{r include=FALSE}
+myPaths <- .libPaths() # get the paths
+myPaths <- c(myPaths[2], myPaths[1])
+.libPaths(myPaths)
+.libPaths()
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(flextable)
-library(ggplot2)
-library(magrittr)
-library(openxlsx)
-library(officer)
-library(webshot)
-library(officedown)
-library(data.table)
-library(berryFunctions)
-library(scales)
 
-set_flextable_defaults(fonts_ignore=TRUE)
+packages <- c("tidyverse",
+              "gtools",
+              "lubridate",
+              "flextable",
+              "ggplot2",
+              "magrittr",
+              "officer",
+              "webshot",
+              "officedown",
+              "data.table",
+              "berryFunctions",
+              "scales")
+
+if (!require(install.load)) {
+  install.packages("install.load")
+}
+
+install.load::install_load(packages)
+
+autonumTab <- run_autonum(seq_id = "tab",
+                          pre_label = "Table ",
+                          post_label = ". ",
+                          bkm_all = TRUE,
+                          prop = fp_text(
+                            color = "black",
+                            font.size = 12,
+                            bold = FALSE,
+                            italic = FALSE,
+                            underlined = FALSE,
+                            font.family = "Times New Roman",
+                            cs.family = NULL,
+                            eastasia.family = NULL,
+                            hansi.family = NULL,
+                            vertical.align = "baseline",
+                            shading.color = "transparent")
+)
+
+table.caption.format <- fp_par(text.align = "left",
+                  padding.bottom = 10)
+# autonumFig <- run_autonum(seq_id = "fig", pre_label = "Figure ", post_label = ". ", bkm_all = FALSE)
+
+# load functions ----------------------------------------------------------
+source("Scripts\\Functions\\fetch_TAC_data.R")
+source("Scripts\\Functions\\round_fun.R")
+source("Scripts\\Functions\\FPC_runsum.R")
+
+# Load TAC database views ####
+# Tim's Unique API Key "SybbLiUs/n5o8tr49yDXw0by4x6LS6+ywKy8e0adSI4="
+# Mark's Unique API Key "SH3HzvUL+FtFmQ4/No9auKYc02kMdntCDSph+mCX3sI="
+# Adam's Unique API Key "FAPHnLQAD91PvtsVKsVmFZRzqiAyj/RjpAvsszkU0KM="
+
+dat<-fetch_TAC_data(api_key = "FAPHnLQAD91PvtsVKsVmFZRzqiAyj/RjpAvsszkU0KM=", server = "Production")
 ```
 
-```{r echo=FALSE}
-### define current run year (value has to be entered manually)
-curr_year <- 2022
-
-### load data files
-#### define file path (make sure: Tools->Global Options...->R Markdown->
-#### Evaluate chunks in directory = "Project")
-inPath <- 'Input\\~Input Data\\Input Tables\\'
-predPath <- 'Output\\Predictions\\'
-rrPath <- "Input\\~Input Data\\Run Reconstruction\\"
-
-#### run reconstruction tables
-willClackRR.dat <- readRDS(
-  paste(
-    rrPath,
-    curr_year,
-    'willClackRRData.rds',
-    sep = ""
-  )
-)
-
-#### model input data
-load(
-  file = paste(
-    inPath,
-    curr_year,
-    "willClackInpData.rda",
-    sep=""
-  )
-)
-
-#### prediction tables
-##### new (curr_year+1) Willamette and Clackamas  predictions
-curr.willClack.predns <- readRDS(
-  paste(
-    predPath,
-    curr_year+1,
-    'willClackComb.pred.out.rds',
-    sep = ""
-  )
-)
-
-##### prior years' (curr_year) Willamette and Clackamas  predictions
-prior.willClack.predns <- readRDS(
-  paste(
-    predPath,
-    curr_year,
-    'willClackComb.pred.out.rds',
-    sep = ""
-  )
-)
-
-# ##### new clackamas (curr_year+1) predictions
-# curr.clack.predns <- readRDS(
-#   paste(
-#     predPath,
-#     curr_year+1,
-#     'clack.pred.out.rds',
-#     sep = ""
-#   )
-# )
-# 
-# ##### prior years' Clackamas (curr_year) predictions
-# prior.clack.predns <- readRDS(
-#   paste(
-#     predPath,
-#     curr_year,
-#     'clack.pred.out.rds',
-#     sep = ""
-#   )
-# )
-
-##### FMEP hatchery escapement goals (will have to be updated with new BA)
-hat_esc_goals <- data.frame(
-  hatch_pred_low = c(
-    0,
-    seq(
-      40000,
-      90000,
-      10000
-      ),
-    100001
-    ),
-  hatch_pred_hi = c(
-    seq(
-      39999,
-      89999,
-      10000
-      ),
-    100000,
-    1000000
-    ),
-  will_falls = c(
-    20000,
-    22000,
-    24000,
-    26500,
-    29000,
-    32000,
-    35000,
-    39000
-    ),
-  clack = c(
-    3000,
-    3300,
-    3600,
-    4000,
-    4400,
-    4900,
-    5400,
-    6000
-    ),
-  tot = c(
-    23000,
-    25300,
-    27600,
-    30500,
-    33400,
-    36900,
-    44000,
-    45000
-    )
-  )
-
-##### FMEP hatchery allocation (will have to be updated with new BA)
-hat_alloc <- data.frame(
-  hatch_pred_low = c(
-    0.00,
-    23000,
-    40000,
-    45000,
-    50000,
-    60000,
-    75000
-    ),
-  hatch_pred_hi = c(
-    22999,
-    39999,
-    44999,
-    49999,
-    59999,
-    75000,
-    1000000
-    ),
-  rec_fish = c(
-    0.00,
-    1.00,
-    0.85,
-    0.80,
-    0.76,
-    0.73,
-    0.70
-    ),
-  comm_fish = c(
-    0.00,
-    0.00,
-    0.15,
-    0.20,
-    0.24,
-    0.27,
-    0.30
-    )
-  )
-     
+```{r API reponse data, echo=FALSE}
+harvest_view <- dat[[1]]
+escapement_view <- dat[[2]]
+age_comp_view <- dat[[3]]
+geography_view <- dat[[4]]
+mort_rate_view <- dat[[5]]
+returns_forecasts_view <- dat[[6]]
 ```
+
+```{r initial data manipulation data, echo=FALSE}
+harvest_raw <- harvest_view %>%
+  mutate_at(c('StartDate','EndDate'),~na_if(., "NULL")) %>%
+  mutate(start_month = month(unlist(StartDate)),
+         end_month = month(unlist(EndDate)))
+```
+
+```{r Table B2a-NI comm. data entry data, echo=FALSE}
+B2a.tbl <- list(ms_comm_gnKept_janChsp=subset(harvest_raw,MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Commercial" &
+                                                GearDetailName == "Mesh 8-8.75" &
+                                                HarvestFisheryAreaName == "Zone 1-3" &
+                                                HarvestDispositionName == "Kept" &
+                                                start_month == "1" &
+                                                end_month == "5",
+                                              select = c(Year,Count)),
+                ms_comm_tnKept_janChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Commercial" &
+                                                GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                HarvestFisheryAreaName == "Zone 1-3" &
+                                                HarvestDispositionName == "Kept" &
+                                                start_month == "1" &
+                                                end_month == "5",
+                                              select = c(Year,Count)),
+                ms_comm_gnKept_junChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Commercial" &
+                                                GearDetailName == "Mesh 8-8.75" &
+                                                HarvestFisheryAreaName == "Zone 1-3" &
+                                                HarvestDispositionName == "Kept" &
+                                                start_month == "6" &
+                                                end_month == "6",
+                                              select = c(Year,Count)),
+                ms_comm_tnKept_junChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Commercial" &
+                                                GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                HarvestFisheryAreaName == "Zone 1-3" &
+                                                HarvestDispositionName == "Kept" &
+                                                start_month == "6" &
+                                                end_month == "6",
+                                              select = c(Year,Count)),
+                ms_comm_gnRel_janChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               GearDetailName == "Mesh 8-8.75" &
+                                               HarvestFisheryAreaName == "Zone 1-3" &
+                                               HarvestDispositionName == "Released" &
+                                               start_month == "1" &
+                                               end_month == "5",
+                                             select = c(Year,Count)),
+                ms_comm_tnRel_janChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                               HarvestFisheryAreaName == "Zone 1-3" &
+                                               HarvestDispositionName == "Released" &
+                                               start_month == "1" &
+                                               end_month == "5",
+                                             select = c(Year,Count)),
+                ms_comm_gnRel_junChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               GearDetailName == "Mesh 8-8.75" &
+                                               HarvestFisheryAreaName == "Zone 1-3" &
+                                               HarvestDispositionName == "Released" &
+                                               start_month == "6" &
+                                               end_month == "6",
+                                             select = c(Year,Count)),
+                ms_comm_tnRel_junChsp=subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                               HarvestFisheryAreaName == "Zone 1-3" &
+                                               HarvestDispositionName == "Released" &
+                                               start_month == "6" &
+                                               end_month == "6",
+                                             select = c(Year,Count)),
+                ms_comm_gnKept_UCchS=subset(harvest_raw,MgmtStockName == "Upper Columbia Summer Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Commercial" &
+                                              GearDetailName == "Mesh 8-8.75" &
+                                              HarvestFisheryAreaName == "Zone 1-3" &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "6" &
+                                              end_month == "7",
+                                            select = c(Year,Count)),
+                ms_comm_gnRel_UCchS=subset(harvest_raw,MgmtStockName == "Upper Columbia Summer Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Commercial" &
+                                             GearDetailName == "Mesh 8-8.75" &
+                                             HarvestFisheryAreaName == "Zone 1-3" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "6" &
+                                             end_month == "7",
+                                           select = c(Year,Count)),
+                saf_comm_tMort_janChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Commercial" &
+                                                 GearDetailName == "Mesh 8-8.75" &
+                                                 HarvestFisheryAreaName == "Select Area" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                saf_comm_tMort_junChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Commercial" &
+                                                 GearDetailName == "Mesh 8-8.75" &
+                                                 HarvestFisheryAreaName == "Select Area" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count)),
+                ms_comm_janShad = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                           AllocationName == "Non-tribal" &
+                                           HarvestTypeName == "Commercial" &
+                                           HarvestTypeDetailName == "Commercial Shad Target" &
+                                           GearDetailName == "Mesh 5.375-6.25" &
+                                           HarvestFisheryAreaName == "Zone 1-3" &
+                                           HarvestDispositionName == "Total Mortality" &
+                                           start_month == "1" &
+                                           end_month == "5",
+                                         select = c(Year,Count)),
+                ms_comm_junShad = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                           AllocationName == "Non-tribal" &
+                                           HarvestTypeName == "Commercial" &
+                                           HarvestTypeDetailName == "Commercial Shad Target" &
+                                           GearDetailName == "Mesh 5.375-6.25" &
+                                           HarvestFisheryAreaName == "Zone 1-3" &
+                                           HarvestDispositionName == "Total Mortality" &
+                                           start_month == "6" &
+                                           end_month == "6",
+                                         select = c(Year,Count)),
+                ms_winCommGN_janChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               HarvestTypeDetailName == "Winter Commercial" &
+                                               GearGroupName == "Gillnet" &
+                                               HarvestFisheryAreaName == "Zone 6" &
+                                               HarvestDispositionName == "Total Mortality" &
+                                               start_month == "1" &
+                                               end_month == "5",
+                                             select = c(Year,Count)),
+                ms_winCommGN_junChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                               AllocationName == "Tribal" &
+                                               HarvestTypeName == "Commercial" &
+                                               HarvestTypeDetailName == "Winter Commercial" &
+                                               GearGroupName == "Gillnet" &
+                                               HarvestFisheryAreaName == "Zone 6" &
+                                               HarvestDispositionName == "Total Mortality" &
+                                               start_month == "6" &
+                                               end_month == "6",
+                                             select = c(Year,Count)),
+                z6_TreatCommGN_janChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                 AllocationName == "Tribal" &
+                                                 HarvestTypeName == "Commercial" &
+                                                 HarvestTypeDetailName != "Winter Commercial" &
+                                                 GearGroupName == "Gillnet" &
+                                                 HarvestFisheryAreaName == "Zone 6" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                z6_TreatCommGN_junChS = subset(harvest_raw,MgmtStockName == "Upriver Spring Chinook" &
+                                                 AllocationName == "Tribal" &
+                                                 HarvestTypeName == "Commercial" &
+                                                 HarvestTypeDetailName != "Winter Commercial" &
+                                                 GearGroupName == "Gillnet" &
+                                                 HarvestFisheryAreaName == "Zone 6" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count))) %>%
+  reduce(full_join, by='Year') %>%
+  na_if("NULL") %>%
+  unnest(cols = tidyselect::everything()) %>%
+  arrange(Year) %>%
+  rename(year = 1,
+         ms_comm_gnKept_janChsp = 2,
+         ms_comm_tnKept_janChsp = 3,
+         ms_comm_gnKept_junChsp = 4,
+         ms_comm_tnKept_junChsp = 5,
+         ms_comm_gnRel_janChsp = 6,
+         ms_comm_tnRel_janChsp = 7,
+         ms_comm_gnRel_junChsp = 8,
+         ms_comm_tnRel_junChsp = 9,
+         ms_comm_gnKept_UCchS = 10,
+         ms_comm_gnRel_UCchS = 11,
+         saf_comm_tMort_janChS = 12,
+         saf_comm_tMort_junChS = 13,
+         ms_comm_janShad = 14,
+         ms_comm_junShad = 15,
+         ms_winCommGN_janChS = 16,
+         ms_winCommGN_junChS = 17,
+         z6_TreatCommGN_janChS = 18,
+         z6_TreatCommGN_junChS = 19) %>%
+  ### NEED TO AUTOMATE THIS!!!!!!
+  mutate(lgMeshRelMort = ifelse(year == 2001,0.00,
+                                ifelse(year >= 2002 & year <= 2003, 0.50,
+                                       ifelse(year >= 2004,0.40,NA))),
+         smMeshRelMort = ifelse(year == 2001, 0.00,
+                                ifelse(year == 2002, 0.10,
+                                       ifelse(year == 2003, 0.25,
+                                              ifelse(year >= 2004 & year <= 2007, 0.185,
+                                                     ifelse(year >= 2008,0.147,NA)
+                                              )
+                                       )
+                                )
+         )
+  ) %>%
+  mutate(across(everything(), ~replace_na(.x, 0)))
+```
+
+```{r Table B2b-NI sport data entry data, echo=FALSE}
+B2b.tbl <- list(msLR_recKept_janChsp=subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Recreational" &
+                                              HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                              GearGroupName == "Hook and Line" &
+                                              GearDetailName != "NULL" &
+                                              PrimaryReachName == "Lower River" &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "1" &
+                                              end_month == "5",
+                                            select = c(Year,Count)),
+                msLR_recRel_janChsp=subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Recreational" &
+                                             HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                             GearGroupName == "Hook and Line" &
+                                             GearDetailName != "NULL" &
+                                             PrimaryReachName == "Lower River" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "1" &
+                                             end_month == "5",
+                                           select = c(Year,Count)),
+                msLR_recRel_janStl=subset(harvest_raw,
+                                          MgmtStockName=="Upriver Spring Chinook" &
+                                            AllocationName == "Non-tribal" &
+                                            HarvestTypeName == "Recreational" &
+                                            HarvestTypeDetailName == "Recreational Steelhead Target" &
+                                            GearGroupName == "Hook and Line" &
+                                            GearDetailName != "NULL" &
+                                            PrimaryReachName == "Lower River" &
+                                            HarvestDispositionName == "Released" &
+                                            start_month == "1" &
+                                            end_month == "5" &
+                                            Count != "NULL",
+                                          select = c(Year,Count)),
+                msLR_recKept_junChsp=subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Recreational" &
+                                              HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                              GearGroupName == "Hook and Line" &
+                                              GearDetailName != "NULL" &
+                                              PrimaryReachName == "Lower River" &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "6" &
+                                              end_month == "6" &
+                                              Count != "NULL",
+                                            select = c(Year,Count)),
+                msLR_recRel_junChsp=subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Recreational" &
+                                             HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                             GearGroupName == "Hook and Line" &
+                                             GearDetailName != "NULL" &
+                                             PrimaryReachName == "Lower River" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "6" &
+                                             end_month == "6" &
+                                             Count != "NULL",
+                                           select = c(Year,Count)),
+                msLR_recRel_junCStl=subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Recreational" &
+                                             HarvestTypeDetailName == "Recreational Steelhead Target" &
+                                             GearGroupName == "Hook and Line" &
+                                             GearDetailName != "NULL" &
+                                             PrimaryReachName == "Lower River" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "6" &
+                                             end_month == "6" &
+                                             Count != "NULL",
+                                           select = c(Year,Count)),
+                msZ6_recKept_janChsp=subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Recreational" &
+                                              HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                              GearGroupName == "Hook and Line" &
+                                              GearDetailName != "NULL" &
+                                              PrimaryReachName == "Zone 6" &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "1" &
+                                              end_month == "5" &
+                                              Count != "NULL",
+                                            select = c(Year,Count)),
+                msZ6_recRel_janChsp=subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Recreational" &
+                                             HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                             GearGroupName == "Hook and Line" &
+                                             GearDetailName != "NULL" &
+                                             PrimaryReachName == "Zone 6" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "1" &
+                                             end_month == "5" &
+                                             Count != "NULL",
+                                           select = c(Year,Count)),
+                msZ6_recKept_junChsp=subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Recreational" &
+                                              HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                              GearGroupName == "Hook and Line" &
+                                              GearDetailName != "NULL" &
+                                              PrimaryReachName == "Zone 6" &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "6" &
+                                              end_month == "6" &
+                                              Count != "NULL",
+                                            select = c(Year,Count)),
+                msZ6_recRel_junChsp=subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Non-tribal" &
+                                             HarvestTypeName == "Recreational" &
+                                             HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                             GearGroupName == "Hook and Line" &
+                                             GearDetailName != "NULL" &
+                                             PrimaryReachName == "Zone 6" &
+                                             HarvestDispositionName == "Released" &
+                                             start_month == "6" &
+                                             end_month == "6" &
+                                             Count != "NULL",
+                                           select = c(Year,Count)),
+                msMCNsl_recKept_janChsp=subset(harvest_raw,
+                                               DataSourceAgencyName == "ODFW/WDFW" &
+                                                 MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Recreational" &
+                                                 HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                 GearGroupName == "Hook and Line" &
+                                                 PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                                 grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                                 HarvestDispositionName == "Kept" &
+                                                 start_month == "1" &
+                                                 end_month == "5" &
+                                                 Count != "NULL",
+                                               select = c(Year,Count)),
+                msMCNsl_recRel_janChsp=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                GearGroupName == "Hook and Line" &
+                                                PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                                grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                                HarvestDispositionName == "Released" &
+                                                start_month == "1" &
+                                                end_month == "5" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                msMCNsl_recKept_junChsp=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Recreational" &
+                                                 HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                 GearGroupName == "Hook and Line" &
+                                                 PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                                 grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                                 HarvestDispositionName == "Kept" &
+                                                 start_month == "6" &
+                                                 end_month == "6" &
+                                                 Count != "NULL",
+                                               select = c(Year,Count)),
+                msMCNsl_recRel_junChsp=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                GearGroupName == "Hook and Line" &
+                                                PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                                grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                                HarvestDispositionName == "Released" &
+                                                start_month == "6" &
+                                                end_month == "6" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                snkBlIHD_recKept_Chspsu=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Recreational" &
+                                                 HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                 GearGroupName == "Hook and Line" &
+                                                 LocationName == "Snake River Below IHD" &
+                                                 PrimaryReachName == "Snake Below Granite Dam" &
+                                                 HarvestDispositionName == "Kept" &
+                                                 Count != "NULL",
+                                               select = c(Year,Count)),
+                snkBlIHD_recRel_Chspsu=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                GearGroupName == "Hook and Line" &
+                                                LocationName == "Snake River Below IHD" &
+                                                PrimaryReachName == "Snake Below Granite Dam" &
+                                                HarvestDispositionName == "Released" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                snkIHDlwg_recKept_Chspsu=subset(harvest_raw,
+                                                MgmtStockName=="Upriver Spring Chinook" &
+                                                  AllocationName == "Non-tribal" &
+                                                  HarvestTypeName == "Recreational" &
+                                                  HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                  GearGroupName == "Hook and Line" &
+                                                  LocationName == "Snake River IHD-LWG" &
+                                                  PrimaryReachName == "Snake Below Granite Dam" &
+                                                  HarvestDispositionName == "Kept" &
+                                                  Count != "NULL",
+                                                select = c(Year,Count)),
+                snkIHDlwg_recRel_Chspsu=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Recreational" &
+                                                 HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                 GearGroupName == "Hook and Line" &
+                                                 LocationName == "Snake River IHD-LWG" &
+                                                 PrimaryReachName == "Snake Below Granite Dam" &
+                                                 !grepl("Hatchery release", as.character(HeaderComments), fixed = TRUE) &
+                                                 HarvestDispositionName == "Released" &
+                                                 Count != "NULL",
+                                               select = c(Year,Count)),
+                snkIHDlwg_recHRel_Chspsu=subset(harvest_raw,
+                                                MgmtStockName=="Upriver Spring Chinook" &
+                                                  AllocationName == "Non-tribal" &
+                                                  HarvestTypeName == "Recreational" &
+                                                  HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                  GearGroupName == "Hook and Line" &
+                                                  LocationName == "Snake River IHD-LWG" &
+                                                  PrimaryReachName == "Snake Below Granite Dam" &
+                                                  grepl("Hatchery release", as.character(HeaderComments), fixed = TRUE) &
+                                                  HarvestDispositionName == "Released" &
+                                                  Count != "NULL",
+                                                select = c(Year,Count)),
+                snkAblwg_recKept_Chspsu=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Recreational" &
+                                                 HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                 GearGroupName == "Hook and Line" &
+                                                 WaterwayName == "Snake Above Granite Dam" &
+                                                 LocationName == "Snake Above Granite Dam" &
+                                                 PrimaryReachName == "Snake Above Granite Dam" &
+                                                 HarvestDispositionName == "Kept" &
+                                                 Count != "NULL",
+                                               select = c(Year,Count)),
+                snkAblwg_recRel_Chspsu=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                                GearGroupName == "Hook and Line" &
+                                                WaterwayName == "Snake Above Granite Dam" &
+                                                LocationName == "Snake Above Granite Dam" &
+                                                PrimaryReachName == "Snake Above Granite Dam" &
+                                                HarvestDispositionName == "Released" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                saf_rec_tMort_janChS = subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                GearGroupName == "Hook and Line" &
+                                                PrimaryReachName == "Lower River" &
+                                                HarvestFisheryAreaName == "Select Area" &
+                                                HarvestDispositionName == "Total Mortality" &
+                                                start_month == "1" &
+                                                end_month == "5" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                saf_rec_tMort_junChS = subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Recreational" &
+                                                GearGroupName == "Hook and Line" &
+                                                PrimaryReachName == "Lower River" &
+                                                HarvestFisheryAreaName == "Select Area" &
+                                                HarvestDispositionName == "Total Mortality" &
+                                                start_month == "6" &
+                                                end_month == "6" &
+                                                Count != "NULL",
+                                              select = c(Year,Count)),
+                upc_tribRing_clpdChS=subset(harvest_raw,
+                                            DataSourceAgencyName == "WDFW" &
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Non-tribal" &
+                                              HarvestTypeName == "Recreational" &
+                                              HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                              GearGroupName == "Hook and Line" &
+                                              PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                              grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                              HarvestDispositionName == "Kept" &
+                                              start_month == "1" &
+                                              Count != "NULL",
+                                            select = c(Year,Count)),
+                upc_tribRing_uclpdChS=subset(harvest_raw,
+                                             DataSourceAgencyName == "WDFW" &
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Recreational" &
+                                               HarvestTypeDetailName != "Recreational Steelhead Target" &
+                                               GearGroupName == "Hook and Line" &
+                                               PrimaryReachName == "McNary Dam - Priest Rapids Dam" &
+                                               grepl("MCN-S/L", as.character(HeaderComments), fixed = TRUE) &
+                                               HarvestDispositionName == "Released" &
+                                               start_month == "1" &
+                                               Count != "NULL",
+                                             select = c(Year,Count))) %>%
+  reduce(full_join, by='Year') %>%
+  na_if("NULL") %>%
+  unnest(cols = tidyselect::everything()) %>%
+  arrange(Year) %>%
+  rename(year = 1,
+         msLR_recKept_janChsp = 2,
+         msLR_recRel_janChsp = 3,
+         msLR_recRel_janStl = 4,
+         msLR_recKept_junChsp = 5,
+         msLR_recRel_junChsp = 6,
+         msLR_recRel_junCStl = 7,
+         msZ6_recKept_janChsp = 8,
+         msZ6_recRel_janChsp = 9,
+         msZ6_recKept_junChsp = 10,
+         msZ6_recRel_junChsp = 11,
+         msMCNsl_recKept_janChsp = 12,
+         msMCNsl_recRel_janChsp = 13,
+         msMCNsl_recKept_junChsp = 14,
+         msMCNsl_recRel_junChsp = 15,
+         snkBlIHD_recKept_Chspsu = 16,
+         snkBlIHD_recRel_Chspsu = 17,
+         snkIHDlwg_recKept_Chspsu = 18,
+         snkIHDlwg_recRel_Chspsu = 19,
+         snkIHDlwg_recHRel_Chspsu = 20,
+         snkAblwg_recKept_Chspsu = 21,
+         snkAblwg_recRel_Chspsu = 22,
+         saf_rec_tMort_janChS = 23,
+         saf_rec_tMort_junChS = 24,
+         upc_tribRing_clpdChS = 25,
+         upc_tribRing_uclpdChS = 26) %>%
+  ### NEED TO AUTOMATE THIS!!!!!!
+  mutate(sportRelMort = ifelse(year >= 2002, 0.10, NA)) %>%
+  mutate(across(everything(), ~replace_na(.x, 0)))
+```
+
+```{r Table B2c-Test or Research data, echo=FALSE}
+B2c.tbl <- list(msTest_corbTot_janChsp=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                GearGroupName == "Corbett Net" &
+                                                GearDetailName == "Multi-mesh" &
+                                                PrimaryReachName == "Lower River" &
+                                                HarvestDispositionName == "Total Mortality" &
+                                                start_month == "1" &
+                                                end_month == "5",
+                                              select = c(Year,Count)),
+                msTest_tnFeas_janChsp=subset(harvest_raw,
+                                             MgmtStockName=="Upriver Spring Chinook" &
+                                               AllocationName == "Non-tribal" &
+                                               HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                               GearGroupName == "Gillnet" &
+                                               GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                               PrimaryReachName == "Lower River" &
+                                               HarvestFisheryAreaName == "Zone 1-3" &
+                                               HarvestDispositionName == "Total Mortality" &
+                                               start_month == "1" &
+                                               end_month == "5",
+                                             select = c(Year,Count)),
+                msRes_NIhatKept_janChsp=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "NULL" &
+                                                 GearDetailName == "NULL" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 1-3" &
+                                                 HarvestDispositionName == "Kept" &
+                                                 FinClipName== "Ad-Clip" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                msRes_NIhatKept_junChsp=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "NULL" &
+                                                 GearDetailName == "NULL" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 1-3" &
+                                                 HarvestDispositionName == "Kept" &
+                                                 FinClipName== "Ad-Clip" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count)),
+                msRes_NIhatRel_totChsp=subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Non-tribal" &
+                                                HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                GearGroupName == "NULL" &
+                                                GearDetailName == "NULL" &
+                                                PrimaryReachName == "Lower River" &
+                                                HarvestFisheryAreaName == "Zone 1-3" &
+                                                HarvestDispositionName == "Released" &
+                                                FinClipName== "Ad-Clip",
+                                              select = c(Year,Count)),
+                msRes_NIwildRel_janChsp=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "NULL" &
+                                                 GearDetailName == "NULL" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 1-3" &
+                                                 HarvestDispositionName == "Released" &
+                                                 FinClipName== "No-Clip" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                msRes_NIwildRel_junChsp=subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "NULL" &
+                                                 GearDetailName == "NULL" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 1-3" &
+                                                 HarvestDispositionName == "Released" &
+                                                 FinClipName== "No-Clip" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count)),
+                msTNtest_NIhatKept_janChsp=subset(harvest_raw,
+                                                  MgmtStockName=="Upriver Spring Chinook" &
+                                                    AllocationName == "Non-tribal" &
+                                                    HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                    GearGroupName == "Gillnet" &
+                                                    GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                    PrimaryReachName == "Lower River" &
+                                                    HarvestFisheryAreaName == "Zone 1-3" &
+                                                    HarvestDispositionName == "Kept" &
+                                                    FinClipName== "Ad-Clip" &
+                                                    start_month == "1" &
+                                                    end_month == "5",
+                                                  select = c(Year,Count)),
+                msTNtest_NIhatKept_junChsp=subset(harvest_raw,
+                                                  MgmtStockName=="Upriver Spring Chinook" &
+                                                    AllocationName == "Non-tribal" &
+                                                    HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                    GearGroupName == "Gillnet" &
+                                                    GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                    PrimaryReachName == "Lower River" &
+                                                    HarvestFisheryAreaName == "Zone 1-3" &
+                                                    HarvestDispositionName == "Kept" &
+                                                    FinClipName== "Ad-Clip" &
+                                                    start_month == "6" &
+                                                    end_month == "6",
+                                                  select = c(Year,Count)),
+                msTNtest_NIwildRel_janChsp=subset(harvest_raw,
+                                                  MgmtStockName=="Upriver Spring Chinook" &
+                                                    AllocationName == "Non-tribal" &
+                                                    HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                    GearGroupName == "Gillnet" &
+                                                    GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                    PrimaryReachName == "Lower River" &
+                                                    HarvestFisheryAreaName == "Zone 1-3" &
+                                                    HarvestDispositionName == "Released" &
+                                                    FinClipName== "No-Clip" &
+                                                    start_month == "1" &
+                                                    end_month == "5",
+                                                  select = c(Year,Count)),
+                msTNtest_NIwildRel_junChsp=subset(harvest_raw,
+                                                  MgmtStockName=="Upriver Spring Chinook" &
+                                                    AllocationName == "Non-tribal" &
+                                                    HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                    GearGroupName == "Gillnet" &
+                                                    GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                    PrimaryReachName == "Lower River" &
+                                                    HarvestFisheryAreaName == "Zone 1-3" &
+                                                    HarvestDispositionName == "Released" &
+                                                    FinClipName== "No-Clip" &
+                                                    start_month == "6" &
+                                                    end_month == "6",
+                                                  select = c(Year,Count)),
+                msTNtest_TreatHatDon_janChsp=subset(harvest_raw,
+                                                    MgmtStockName=="Upriver Spring Chinook" &
+                                                      AllocationName == "Tribal" &
+                                                      HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                      GearGroupName == "Gillnet" &
+                                                      GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                      PrimaryReachName == "Lower River" &
+                                                      HarvestFisheryAreaName == "Zone 1-3" &
+                                                      HarvestDispositionName == "Kept" &
+                                                      FinClipName== "Ad-Clip" &
+                                                      start_month == "1" &
+                                                      end_month == "5",
+                                                    select = c(Year,Count)),
+                msTNtest_TreatWildDon_janChsp=subset(harvest_raw,
+                                                     MgmtStockName=="Upriver Spring Chinook" &
+                                                       AllocationName == "Tribal" &
+                                                       HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                       GearGroupName == "Gillnet" &
+                                                       GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                       PrimaryReachName == "Lower River" &
+                                                       HarvestFisheryAreaName == "Zone 1-3" &
+                                                       HarvestDispositionName == "Kept" &
+                                                       FinClipName== "No-Clip" &
+                                                       start_month == "1" &
+                                                       end_month == "5",
+                                                     select = c(Year,Count)),
+                saf_test_tMort_janChS = subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "Gillnet" &
+                                                 GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Select Area" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                saf_test_tMort_junChS = subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Non-tribal" &
+                                                 HarvestTypeName == "Research/Monitoring/Evaluation" &
+                                                 GearGroupName == "Gillnet" &
+                                                 GearDetailName == "Tanglenet (mesh 3-3.75)" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Select Area" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count)),
+                cs_TreatHLDon_janChsp = subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Tribal" &
+                                                 HarvestTypeName == "Ceremonial/Subsistence" &
+                                                 GearGroupName == "Platform/Hook&Line" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 4-5" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "1" &
+                                                 end_month == "5",
+                                               select = c(Year,Count)),
+                cs_TreatHLDon_junChsp = subset(harvest_raw,
+                                               MgmtStockName=="Upriver Spring Chinook" &
+                                                 AllocationName == "Tribal" &
+                                                 HarvestTypeName == "Ceremonial/Subsistence" &
+                                                 GearGroupName == "Platform/Hook&Line" &
+                                                 PrimaryReachName == "Lower River" &
+                                                 HarvestFisheryAreaName == "Zone 4-5" &
+                                                 HarvestDispositionName == "Total Mortality" &
+                                                 start_month == "6" &
+                                                 end_month == "6",
+                                               select = c(Year,Count)),
+                cs_TreatGN_janChsp = subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Tribal" &
+                                              HarvestTypeName == "Ceremonial/Subsistence" &
+                                              GearGroupName == "Gillnet" &
+                                              PrimaryReachName == "Zone 6" &
+                                              HarvestFisheryAreaName == "Zone 6" &
+                                              HarvestDispositionName == "Total Mortality" &
+                                              start_month == "1" &
+                                              end_month == "5",
+                                            select = c(Year,Count)),
+                cs_TreatGN_junChsp = subset(harvest_raw,
+                                            MgmtStockName=="Upriver Spring Chinook" &
+                                              AllocationName == "Tribal" &
+                                              HarvestTypeName == "Ceremonial/Subsistence" &
+                                              GearGroupName == "Gillnet" &
+                                              PrimaryReachName == "Zone 6" &
+                                              HarvestFisheryAreaName == "Zone 6" &
+                                              HarvestDispositionName == "Total Mortality" &
+                                              start_month == "6" &
+                                              end_month == "6",
+                                            select = c(Year,Count)),
+                z6_platHL_janChsp = subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Tribal" &
+                                             HarvestTypeName == "Ceremonial/Subsistence" &
+                                             GearGroupName == "Platform/Hook&Line" &
+                                             PrimaryReachName == "Zone 6" &
+                                             HarvestFisheryAreaName == "Zone 6" &
+                                             HarvestDispositionName == "Total Mortality" &
+                                             start_month == "1" &
+                                             end_month == "5",
+                                           select = c(Year,Count)),
+                z6_platHL_janChsp = subset(harvest_raw,
+                                           MgmtStockName=="Upriver Spring Chinook" &
+                                             AllocationName == "Tribal" &
+                                             HarvestTypeName == "Ceremonial/Subsistence" &
+                                             GearGroupName == "Platform/Hook&Line" &
+                                             PrimaryReachName == "Zone 6" &
+                                             HarvestFisheryAreaName == "Zone 6" &
+                                             HarvestDispositionName == "Total Mortality" &
+                                             start_month == "6" &
+                                             end_month == "6",
+                                           select = c(Year,Count)),
+                upc_tribWan_clpdChS = subset(harvest_raw,
+                                             MgmtStockName=="Upriver Spring Chinook" &
+                                               AllocationName == "Tribal" &
+                                               TribeName == "Wanapum" &
+                                               HarvestTypeName == "Ceremonial/Subsistence" &
+                                               GearGroupName == "Gillnet" &
+                                               PrimaryReachName == "Above Priest Rapids Dam" &
+                                               HarvestFisheryAreaName == "Above Priest Rapids Dam" &
+                                               FinClipName == "Ad-Clip" &
+                                               HarvestDispositionName == "Kept" &
+                                               start_month == "1" &
+                                               Count != "NULL",
+                                             select = c(Year,Count)),
+                upc_tribWan_uclpdChS = subset(harvest_raw,
+                                              MgmtStockName=="Upriver Spring Chinook" &
+                                                AllocationName == "Tribal" &
+                                                TribeName == "Wanapum" &
+                                                HarvestTypeName == "Ceremonial/Subsistence" &
+                                                GearGroupName == "Gillnet" &
+                                                PrimaryReachName == "Above Priest Rapids Dam" &
+                                                HarvestFisheryAreaName == "Above Priest Rapids Dam" &
+                                                FinClipName == "No-Clip" &
+                                                HarvestDispositionName == "Kept" &
+                                                start_month == "1" &
+                                                Count != "NULL",
+                                              select = c(Year,Count))) %>%
+  reduce(full_join, by='Year') %>%
+  na_if("NULL") %>%
+  unnest(cols = tidyselect::everything()) %>%
+  arrange(Year) %>%
+  rename(year = 1,
+         msTest_corbTot_janChsp = 2,
+         msTest_tnFeas_janChsp = 3,
+         msRes_NIhatKept_janChsp = 4,
+         msRes_NIhatKept_junChsp = 5,
+         msRes_NIhatRel_totChsp = 6,
+         msRes_NIwildRel_janChsp = 7,
+         msRes_NIwildRel_junChsp = 8,
+         msTNtest_NIhatKept_janChsp = 9,
+         msTNtest_NIhatKept_junChsp = 10,
+         msTNtest_NIwildRel_janChsp = 11,
+         msTNtest_NIwildRel_junChsp = 12,
+         msTNtest_TreatHatDon_janChs = 13,
+         msTNtest_TreatWildDon_janChsp = 14,
+         saf_test_tMort_janChS = 15,
+         saf_test_tMort_junChS = 16,
+         cs_TreatHLDon_janChsp = 17,
+         cs_TreatHLDon_junChsp = 18,
+         cs_TreatGN_janChsp = 19,
+         cs_TreatGN_junChsp = 20,
+         z6_platHL_janChsp = 21,
+         z6_platHL_junChsp = 22,
+         upc_tribWan_clpdChS = 23,
+         upc_tribWan_uclpdChS = 24) %>%
+  mutate(msRes_NIwildRelMort_janChsp = round_fun(msRes_NIwildRel_janChsp*as.numeric(mort_rate_view[4,10])),
+         msRes_NIwildRelMort_junChsp = round_fun(msRes_NIwildRel_junChsp*as.numeric(mort_rate_view[4,10])),
+         msTNtest_NIwildRelMort_janChsp = round_fun(msTNtest_NIwildRel_janChsp * if_else(year >= 2004 & year <= 2007, as.numeric(mort_rate_view[3,10]),as.numeric(mort_rate_view[4,10])))) %>%
+  mutate(across(everything(), ~replace_na(.x, 0)))
+
+  ### NEED TO FIND A BETTER WAY TO DO THIS!!!
+  B2c.tbl[34,ncol(B2c.tbl)] <- 2+16
+```
+
+```{r Table B2d-mark selective data, echo=FALSE}
+B2d.tbl <- data.frame(year = B2a.tbl$year) %>%
+  mutate(totUprvr_sp_comm_lm = round_fun())
+```
+
+```{r Table B1-Spring Harvest Summary data, echo=FALSE}
+spHarvSummary <- data.frame(year = B2a.tbl$year) %>%
+    mutate(z1_5_nt_ms_comm = round_fun(ifelse(B2a.tbl$year==2001,
+                                              round_fun(B2a.tbl$ms_comm_gnKept_janChsp),
+                                              round_fun((B2a.tbl$ms_comm_gnKept_janChsp + B2a.tbl$ms_comm_tnKept_janChsp)+
+                                                          (B2a.tbl$ms_comm_gnRel_janChsp*B2a.tbl$lgMeshRelMort) +
+                                                          (B2a.tbl$ms_comm_tnRel_janChsp*B2a.tbl$smMeshRelMort))) +
+                                         (B2a.tbl$ms_comm_gnKept_junChsp + B2a.tbl$ms_comm_tnKept_junChsp) +
+                                         (B2a.tbl$ms_comm_gnRel_junChsp*B2a.tbl$lgMeshRelMort) +
+                                         (B2a.tbl$ms_comm_tnRel_junChsp*B2a.tbl$smMeshRelMort)),
+           z1_5_nt_ms_sport = round_fun((B2b.tbl$msLR_recKept_janChsp +
+                                           (B2b.tbl$msLR_recRel_janChsp * as.numeric(mort_rate_view[7,10])) +  # NEED TO INCOPORATE RELEASE MORTALITY AS A LOOKUP FROM DATABASE TABLE
+                                           (B2b.tbl$msLR_recRel_janStl * as.numeric(mort_rate_view[7,10]))) +
+                                          (B2b.tbl$msLR_recKept_junChsp +
+                                             (B2b.tbl$msLR_recRel_junChsp * as.numeric(mort_rate_view[7,10])) +
+                                             (B2b.tbl$msLR_recRel_junCStl * as.numeric(mort_rate_view[7,10])))),
+           z1_5_nt_saf_comm = round_fun(B2a.tbl$saf_comm_tMort_janChS +
+                                          B2a.tbl$saf_comm_tMort_junChS),
+           z1_5_nt_saf_test = round_fun(B2c.tbl$saf_test_tMort_janChS +
+                                          B2c.tbl$msRes_NIwildRelMort_junChsp),
+           z1_5_nt_saf_sport = round_fun(B2b.tbl$saf_rec_tMort_janChS +
+                                           B2b.tbl$saf_rec_tMort_junChS),
+           z1_5_nt_ms_res_test = round_fun((B2c.tbl$msTest_corbTot_janChsp +
+                                              B2c.tbl$msTest_tnFeas_janChsp +
+                                              B2c.tbl$msRes_NIhatKept_janChsp +
+                                              round_fun(B2c.tbl$msRes_NIwildRel_janChsp*as.numeric(mort_rate_view[4,10])) +
+                                              B2c.tbl$msTNtest_NIhatKept_janChsp +
+                                              B2c.tbl$msTNtest_NIwildRelMort_janChsp +
+                                              B2c.tbl$msRes_NIhatRel_totChsp * 0.146)) +
+             round_fun((B2c.tbl$msRes_NIhatKept_junChsp +
+                          B2c.tbl$msTNtest_NIhatKept_junChsp +
+                          ((B2c.tbl$msRes_NIwildRel_junChsp + B2c.tbl$msTNtest_NIwildRel_junChsp) * as.numeric(mort_rate_view[4,10])))),
+           z1_5_nt_comm_shad = round_fun(B2a.tbl$ms_comm_janShad) +
+             round_fun(B2a.tbl$ms_comm_junShad),
+           z1_5_nt_total = round_fun((B2a.tbl$ms_comm_gnKept_janChsp + B2a.tbl$ms_comm_tnKept_janChsp) +
+                                       (B2a.tbl$ms_comm_gnRel_janChsp*B2a.tbl$lgMeshRelMort) +
+                                       (B2a.tbl$ms_comm_tnRel_janChsp*B2a.tbl$smMeshRelMort) +
+                                       (B2a.tbl$ms_comm_gnKept_junChsp + B2a.tbl$ms_comm_tnKept_junChsp) +
+                                       (B2a.tbl$ms_comm_gnRel_junChsp*B2a.tbl$lgMeshRelMort) +
+                                       (B2a.tbl$ms_comm_tnRel_junChsp*B2a.tbl$smMeshRelMort))+
+             round_fun((B2b.tbl$msLR_recKept_janChsp
+                        +(B2b.tbl$msLR_recRel_janChsp * as.numeric(mort_rate_view[7,10])) +  # NEED TO INCOPORATE RELEASE MORTALITY AS A LOOKUP FROM DATABASE TABLE (AS ABOVE)
+                          (B2b.tbl$msLR_recRel_janStl * as.numeric(mort_rate_view[7,10])))
+                       +(B2b.tbl$msLR_recKept_junChsp
+                         +(B2b.tbl$msLR_recRel_junChsp * as.numeric(mort_rate_view[7,10])) +
+                           (B2b.tbl$msLR_recRel_junCStl * as.numeric(mort_rate_view[7,10]))))+
+             round_fun(B2a.tbl$saf_comm_tMort_janChS +
+                         B2a.tbl$saf_comm_tMort_junChS)+
+             round_fun(B2c.tbl$saf_test_tMort_janChS +
+                         B2c.tbl$saf_test_tMort_junChS)+
+             round_fun(B2b.tbl$saf_rec_tMort_janChS +
+                         B2b.tbl$saf_rec_tMort_junChS)+
+             round_fun((B2c.tbl$msTest_corbTot_janChsp +
+                          B2c.tbl$msTest_tnFeas_janChsp +
+                          B2c.tbl$msRes_NIhatKept_janChsp +
+                          B2c.tbl$msRes_NIwildRel_janChsp*as.numeric(mort_rate_view[4,10]) +
+                          B2c.tbl$msTNtest_NIhatKept_janChsp +
+                          B2c.tbl$msTNtest_NIwildRelMort_janChsp +
+                          B2c.tbl$msRes_NIhatRel_totChsp * 0.146)) +
+             round_fun((B2c.tbl$msRes_NIhatKept_junChsp +
+                          B2c.tbl$msTNtest_NIhatKept_junChsp +
+                          ((B2c.tbl$msRes_NIwildRel_junChsp + B2c.tbl$msTNtest_NIwildRel_junChsp) * as.numeric(mort_rate_view[4,10]))))+
+             round_fun(B2a.tbl$ms_comm_janShad) +
+             round_fun(B2a.tbl$ms_comm_junShad),
+           bbd_tribal = round_fun(B2c.tbl$msTNtest_TreatHatDon_janChs +
+                                    B2c.tbl$msTNtest_TreatWildDon_janChsp +
+                                    B2c.tbl$cs_TreatHLDon_janChsp +
+                                    B2c.tbl$cs_TreatHLDon_junChsp),
+           z1_5_tnt_total = round_fun(ifelse(B2a.tbl$year==2001,
+                                             round_fun(B2a.tbl$ms_comm_gnKept_janChsp),
+                                             round_fun((B2a.tbl$ms_comm_gnKept_janChsp + B2a.tbl$ms_comm_tnKept_janChsp)+
+                                                         (B2a.tbl$ms_comm_gnRel_janChsp*B2a.tbl$lgMeshRelMort) +
+                                                         (B2a.tbl$ms_comm_tnRel_janChsp*B2a.tbl$smMeshRelMort))) +
+                                        (B2a.tbl$ms_comm_gnKept_junChsp + B2a.tbl$ms_comm_tnKept_junChsp) +
+                                        (B2a.tbl$ms_comm_gnRel_junChsp*B2a.tbl$lgMeshRelMort) +
+                                        (B2a.tbl$ms_comm_tnRel_junChsp*B2a.tbl$smMeshRelMort)) +
+             round_fun((B2b.tbl$msLR_recKept_janChsp +
+                          (B2b.tbl$msLR_recRel_janChsp * as.numeric(mort_rate_view[7,10])) +  # NEED TO INCOPORATE RELEASE MORTALITY AS A LOOKUP FROM DATABASE TABLE (AS ABOVE)
+                          (B2b.tbl$msLR_recRel_janStl * as.numeric(mort_rate_view[7,10]))) +
+                         (B2b.tbl$msLR_recKept_junChsp +
+                            (B2b.tbl$msLR_recRel_junChsp * as.numeric(mort_rate_view[7,10])) +
+                            (B2b.tbl$msLR_recRel_junCStl * as.numeric(mort_rate_view[7,10])))) +
+             round_fun(B2a.tbl$saf_comm_tMort_janChS +
+                         B2a.tbl$saf_comm_tMort_junChS) +
+             round_fun(B2c.tbl$saf_test_tMort_janChS +
+                         B2c.tbl$saf_test_tMort_junChS) +
+             round_fun(B2b.tbl$saf_rec_tMort_janChS +
+                         B2b.tbl$saf_rec_tMort_junChS) +
+             round_fun((B2c.tbl$msTest_corbTot_janChsp +
+                          B2c.tbl$msTest_tnFeas_janChsp +
+                          B2c.tbl$msRes_NIhatKept_janChsp +
+                          B2c.tbl$msRes_NIwildRel_janChsp*as.numeric(mort_rate_view[4,10]) +
+                          B2c.tbl$msTNtest_NIhatKept_janChsp +
+                          B2c.tbl$msTNtest_NIwildRelMort_janChsp +
+                          B2c.tbl$msRes_NIhatRel_totChsp * 0.146)) +
+             round_fun((B2c.tbl$msRes_NIhatKept_junChsp +
+                          B2c.tbl$msTNtest_NIhatKept_junChsp +
+                          ((B2c.tbl$msRes_NIwildRel_junChsp + B2c.tbl$msTNtest_NIwildRel_junChsp) * as.numeric(mort_rate_view[4,10])))) +
+             round_fun(B2a.tbl$ms_comm_janShad) +
+             round_fun(B2a.tbl$ms_comm_junShad) +
+             round_fun(B2c.tbl$msTNtest_TreatHatDon_janChs +
+                         B2c.tbl$msTNtest_TreatWildDon_janChsp +
+                         B2c.tbl$cs_TreatHLDon_janChsp) +
+             round_fun(B2c.tbl$cs_TreatHLDon_junChsp),
+           z6_nt_sport = round_fun(B2b.tbl$msZ6_recKept_janChsp
+                                   +(B2b.tbl$msZ6_recRel_janChsp * as.numeric(mort_rate_view[7,10])))+
+             round_fun(B2b.tbl$msZ6_recKept_junChsp +
+                         (B2b.tbl$msZ6_recRel_junChsp * as.numeric(mort_rate_view[7,10]))),
+           z6_tr_win_comm_gn = round_fun(B2a.tbl$ms_winCommGN_janChS) +
+             round_fun(B2a.tbl$ms_winCommGN_junChS),
+           z6_tr_comm_gn = round_fun(B2a.tbl$z6_TreatCommGN_janChS) +
+             round_fun(B2a.tbl$z6_TreatCommGN_junChS),
+           z6_tr_cs_gphl = round_fun(B2c.tbl$z6_platHL_janChsp) +
+             round_fun(B2c.tbl$z6_platHL_junChsp) +
+             round_fun(B2c.tbl$cs_TreatGN_janChsp) +
+             round_fun(B2c.tbl$cs_TreatGN_junChsp),
+           z6_tnt_total = round_fun(B2b.tbl$msZ6_recKept_janChsp
+                                    +(B2b.tbl$msZ6_recRel_janChsp * as.numeric(mort_rate_view[7,10])))+
+             round_fun(B2b.tbl$msZ6_recKept_junChsp +
+                         (B2b.tbl$msZ6_recRel_junChsp * as.numeric(mort_rate_view[7,10]))) +
+             round_fun(B2a.tbl$ms_winCommGN_janChS) +
+             round_fun(B2a.tbl$ms_winCommGN_junChS) +
+             round_fun(B2a.tbl$z6_TreatCommGN_janChS) +
+             round_fun(B2a.tbl$z6_TreatCommGN_junChS) +
+             round_fun(B2c.tbl$z6_platHL_janChsp) +
+             round_fun(B2c.tbl$z6_platHL_junChsp) +
+             round_fun(B2c.tbl$cs_TreatGN_janChsp) +
+             round_fun(B2c.tbl$cs_TreatGN_junChsp))
+```
+
+```{r Table T1-Upriver data, echo=FALSE}
+T1_base <- data.frame(year = B2a.tbl$year,
+                        z1_5_nt_ms_comm_saf = spHarvSummary$z1_5_nt_ms_comm +
+                          spHarvSummary$z1_5_nt_saf_comm +
+                          spHarvSummary$z1_5_nt_comm_shad,
+                        z1_5_nt_ms_sport_saf = spHarvSummary$z1_5_nt_ms_sport +
+                          spHarvSummary$z1_5_nt_saf_sport,
+                        z1_5_nt_res_test = spHarvSummary$z1_5_nt_saf_test +
+                          spHarvSummary$z1_5_nt_ms_res_test,
+                        bbd_tr = spHarvSummary$bbd_tribal,
+                        count = rbind(data.frame(count = 58234),
+                                        fpc_runsum("BON",
+                                                   paste("1-1-",min(B2a.tbl$year),sep=""),
+                                                   paste("6-15-",max(B2a.tbl$year),sep=""),
+                                                   "salmon") %>%
+                                                     mutate(year = year(CountDate),
+                                                            monthDay = format(CountDate, "%m%d")) %>%
+                                          select(year,
+                                                 monthDay,
+                                                 AdultChinook) %>%
+                                          filter(monthDay >= "0101" & monthDay <= "0615") %>%
+                                          group_by(year) %>%
+                                          summarise(count = sum(AdultChinook)) %>%
+                                          select(count) %>%
+                                          tail(-1)),
+                        z6_sport = spHarvSummary$z6_nt_sport,
+                        z6_tr_win_comm_gn = spHarvSummary$z6_tr_win_comm_gn,
+                        z6_tr_comm_gn = spHarvSummary$z6_tr_comm_gn,
+                        z6_tr_cs_gphl = spHarvSummary$z6_tr_cs_gphl) %>%
+    mutate(bbd_tot_harv = rowSums(select(.,"z1_5_nt_ms_comm_saf",
+                                  "z1_5_nt_ms_sport_saf",
+                                  "z1_5_nt_res_test",
+                                  "bbd_tr")),
+           z6_tot_harv = rowSums(select(.,"z6_sport",
+                                        "z6_tr_win_comm_gn",
+                                        "z6_tr_comm_gn",
+                                        "z6_tr_cs_gphl"))) %>%
+    mutate(uprvrRun = rowSums(select(.,"bbd_tot_harv",
+                                     "count")),
+           z6_harv_esc_no = count-z6_tot_harv,
+           z6_harv_esc_por = (z6_harv_esc_no/uprvrRun)) %>%
+    relocate(uprvrRun, .after = year) %>%
+    relocate(bonCount=count, .before = z6_sport) %>%
+    relocate(bbd_tot_harv, .after = bbd_tr) %>%
+    relocate(z6_tot_harv, .after = z6_tr_cs_gphl)
+```
+
+```{r Table-mgmt rep T1 data, echo=FALSE}
+T1_mgmtRep <- data.frame(year = spHarvSummary$year) %>%
+    mutate(rm_run_size = select(T1_base, "uprvrRun"),
+           tot_nt_impacts = round_fun(spHarvSummary$z1_5_nt_total - spHarvSummary$z1_5_nt_ms_res_test) +
+             spHarvSummary$z6_nt_sport +
+             (round_fun(B2b.tbl$msMCNsl_recKept_janChsp +
+                          B2b.tbl$msMCNsl_recKept_junChsp) +
+                round_fun((B2b.tbl$msMCNsl_recRel_janChsp +
+                             B2b.tbl$msMCNsl_recRel_junChsp) *
+                            as.numeric(mort_rate_view[7,10])) +
+                round_fun(B2c.tbl$upc_tribWan_clpdChS) +
+                round_fun(B2c.tbl$upc_tribWan_uclpdChS) +
+                round_fun(B2b.tbl$upc_tribRing_clpdChS) +
+                round_fun(B2b.tbl$upc_tribRing_uclpdChS *
+                            as.numeric(mort_rate_view[7,10])) +
+                round_fun(B2b.tbl$snkBlIHD_recKept_Chspsu +
+                            B2b.tbl$snkIHDlwg_recKept_Chspsu +
+                            (B2b.tbl$snkIHDlwg_recHRel_Chspsu * as.numeric(mort_rate_view[7,10]))) +
+                round_fun((B2b.tbl$snkBlIHD_recRel_Chspsu + B2b.tbl$snkIHDlwg_recRel_Chspsu) *
+                            as.numeric(mort_rate_view[7,10])) +
+                round_fun(B2b.tbl$snkAblwg_recKept_Chspsu) +
+                round_fun(B2b.tbl$snkAblwg_recRel_Chspsu * as.numeric(mort_rate_view[7,10]))),
+           tot_treat_impacts = (spHarvSummary$z6_tnt_total - spHarvSummary$z6_nt_sport) +
+             spHarvSummary$bbd_tribal) %>%
+    filter(year >=max(year) - 9) %>%
+    mutate(tot_all_treat_harvest_rate = as.numeric(c(0.1000,
+                                          0.0910,
+                                          0.0830,
+                                          0.1000,
+                                          0.1080,
+                                          0.0910,
+                                          0.0700,
+                                          0.0830,
+                                          0.0700,
+                                          0.0700))) %>%
+    mutate(tot_all_treat_harv = round_fun(rm_run_size * tot_all_treat_harvest_rate),
+           tot_act_treat_harv_rate = tot_treat_impacts/rm_run_size)
   
-## Summary of `r as.numeric(curr_year)` Willamette River spring Chinook return
-
-The total Willamette River spring Chinook return to the Columbia River mouth during `r as.numeric(curr_year)` is estimated to be `r format(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6], big.mark = ",")` fish (Table 1).  An estimated `r format(as.numeric(subset(willClackRR.dat, catch=="Run Entering Columbia", select = c(wild))), big.mark = ",")` of these fish were unmarked (~`r percent(willChsHWprop.dat[nrow(willChsHWprop.dat),4])`).  The `r as.numeric(curr_year)` total reconstructed return was approximately `r percent(as.numeric(willChsRet.dat[nrow(willChsRet.dat)-1,3] + willChsRet.dat[nrow(willChsRet.dat)-2,4] + willChsRet.dat[nrow(willChsRet.dat)-3,5] + willChsRet.dat[nrow(willChsRet.dat)-4,6])/as.numeric(prior.willClack.predns[6,2]))` of forecast.  The Clackamas River component was approximately `r percent(as.numeric(clackChsRet.dat[nrow(clackChsRet.dat),6])/as.numeric(prior.willClack.predns[14,2]))` of forecast, with `r format(clackChsRet.dat[nrow(clackChsRet.dat),6], big.mark = ",")` spring Chinook returning to the Clackamas River compared to `r format(as.numeric(prior.willClack.predns[14,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.willClack.predns[14,3]), big.mark = ",")`–`r format(as.numeric(prior.willClack.predns[14,4]), big.mark = ",")`) fish expected.
-
-The total return of adipose-fin-marked hatchery fish to the Columbia River mouth in `r as.numeric(curr_year)` is estimated to be `r format(as.numeric(subset(willClackRR.dat, catch=="Run Entering Columbia", select = c(hatchery))), big.mark = ",")`, compared to `r format(as.numeric(prior.willClack.predns[12,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(prior.willClack.predns[12,3]), big.mark = ",")`–`r format(as.numeric(prior.willClack.predns[12,4]), big.mark = ",")`) fish expected.  Counts at the Willamette Falls fishway indicate that `r format(as.numeric(subset(willClackRR.dat, catch=="Willamette Falls Count", select = c(hatchery))), big.mark = ",")` fin-marked hatchery fish and `r format(as.numeric(subset(willClackRR.dat, catch=="Willamette Falls Count", select = c(wild))), big.mark = ",")` unmarked fish passed the fish ladder.  The full reconstruction of the 2022 return is shown in Table 2.
-
-```{r Table 1 data, echo=FALSE}
-T1 <- data.frame(rowLabel = c(paste0(curr_year, " Forecast"),
-                              "95% CrI",
-                              paste0(curr_year, " Reconstructed Return")),
-                 
-                 age_3 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns,
-                         model=="Willamette Age-3",
-                         select = c(mean.pred.will)
-                         )
-                       ),
-                     big.mark = ","
-                     ),
-                            paste0(
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    prior.willClack.predns,
-                                    model=="Willamette Age-3",
-                                    select = c(lwrHDI.will)
-                                    )
-                                  )<0,0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      prior.willClack.predns,
-                                      model=="Willamette Age-3",
-                                      select = c(lwrHDI.will)
-                                      )
-                                    ),
-                                  big.mark = ","
-                                  )
-                                ),
-                              "\u2013",
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    prior.willClack.predns, 
-                                    model=="Willamette Age-3", 
-                                    select = c(uprHDI.will)
-                                    )
-                                  )<0,
-                                0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      prior.willClack.predns, 
-                                      model=="Willamette Age-3", 
-                                      select = c(uprHDI.will)
-                                      )
-                                    ), 
-                                  big.mark = ","
-                                  )
-                                ),
-                              sep=""
-                              ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(age_3)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   ),
-                 
-                 age_4 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns, 
-                         model=="Willamette Age-4", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-4", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Age-4", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-4", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(prior.willClack.predns, 
-                                  model=="Willamette Age-4", 
-                                  select = c(uprHDI.will)
-                                  )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(age_4)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   ),
-                 
-                 age_5 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns, 
-                         model=="Willamette Age-5", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-5", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Age-5", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-5", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Age-5", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(age_5)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   ),
-                 
-                 age_6 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns, 
-                         model=="Willamette Age-6", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-6", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Age-6", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Age-6", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Age-6", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(age_6)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   ),
-                 
-                 
-                 
-                 adults = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns, 
-                         model=="Willamette Adults", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(prior.willClack.predns, 
-                                model=="Willamette Adults", 
-                                select = c(lwrHDI.will)
-                                )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Adults", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Adults", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Adults", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(adults)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   ),
-                 
-                 total = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         prior.willClack.predns, 
-                         model=="Willamette Total", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Total", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Total", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           prior.willClack.predns, 
-                           model=="Willamette Total", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             prior.willClack.predns, 
-                             model=="Willamette Total", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     ),
-                   format(
-                     as.numeric(
-                       subset(
-                         willClackRR.dat, 
-                         catch=="Run Entering Columbia", 
-                         select = c(total)
-                         )
-                       ), 
-                     big.mark = ","
-                     )
-                   )
-                 )
+    T1_mgmtRep <- do.call(data.frame, T1_mgmtRep) %>%
+      rename("year" = 1,
+             "rm_run_size" = 2,
+             "tot_nt_impacts" = 3,
+             "tot_treat_impacts" = 4,
+             "tot_all_treat_harvest_rate" = 5,
+             "tot_all_treat_harv" = 6,
+             "tot_act_treat_harv_rate" = 7)
 ```
-Table 1. `r paste0(curr_year," forecast and reconstructed return of Willamette River spring Chinook Salmon to Columbia River mouth",sep="")`.
-```{r Table 1, echo=FALSE, ft.arraystretch = 1.3}
-flextable(T1) %>% 
+\newpage
+# List of Tables
+<!---BLOCK_TOC{style: 'Table Caption',seq_id: 'tab', separator: ','}--->
+\newpage
+# List of Figures
+<!---BLOCK_TOC{style: 'Image Caption',seq_id: 'fig', separator: ','}--->
+\newpage
+# Introduction
+
+This example document was generated by linking R directly to the TAC database and data from the FPC website.  As long as data from those sources are maintained, TAC products (e.g., management reports) can be updated with a handful of key strokes; as opposed to hours of spreadsheet manipulation. In addition to updating tables (as below), we can also update values in text.  For example,
+
+ + we can ask R to present in the text the upriver run size for the current year (in this case 2020): `r formatC(as.numeric(tail(subset(T1_base, select = c(uprvrRun)),1)),digits = 0, format = "f", big.mark = ",")`,
+ + we can ask r to calculate and present the proportion of non-treaty impacts in the last ten years that fell below 10,000: `r nrow(subset(T1_mgmtRep,tot_nt_impacts <=10000))/nrow(T1_mgmtRep) ` 
+
+Basically, we can summarize automatically any data in the TAC database (or any data called-into Rmarkdown), etc. by using tags within the text.  
+
+\newpage
+```{r tab.cap=paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""), tab.id = "Table1", echo=FALSE, tab.cap.style = "Table Caption"}
+flextable(T1_mgmtRep) %>%
   align(align = "center",
         part = "all") %>%
   valign(i = 1,
          valign = "bottom",
          part = "header") %>%
-  padding(padding = 0, part = "all") %>% 
-  set_header_labels(rowLabel = "",
-                    age_3 = "Age 3",
-                    age_4 = "Age 4",
-                    age_5 = "Age 5",
-                    age_6 = "Age 6",
-                    adults = "",  
-                    total = "") %>%
-  fontsize(size = 9,
+  set_header_labels(year = "Year",
+                    rm_run_size = "River Mouth Run Size",
+                    tot_nt_impacts = "Total Non-treaty Impacts",
+                    tot_treat_impacts = "Total Treaty Impacts",
+                    tot_all_treat_harvest_rate = "Total Allowed Treaty Harvest Rate",
+                    tot_all_treat_harv = "Total Allowed Treaty Harvest (catch balance for non-treaty)",
+                    tot_act_treat_harv_rate = "Total Actual Treaty Harvest Rate") %>%
+  set_formatter(year = year_form,
+                rm_run_size = int_form,
+                tot_nt_impacts = int_form,
+                tot_treat_impacts = int_form,
+                tot_all_harvest_rate = harv_rt_form,
+                tot_all_treat_harv = int_form,
+                tot_act_treat_harv_rate = harv_rt_form) %>%
+  fontsize(size = 10,
            part = "all") %>%
   font(fontname = "Times New Roman",
        part = "all") %>%
@@ -647,1102 +1264,255 @@ flextable(T1) %>%
   hline(i=1,
         part="header",
         border = fp_border(color="black",
-                           width = 0.5)) %>%
+                           width = 1)) %>%
+  hline_top(part="header",
+            border = fp_border(color="black",
+                               width = 2)) %>%
+  hline_bottom(part="body",
+               border = fp_border(color="black",
+                                  width = 2)) %>%
+  width(j = 1:7, 1) %>%
+  bold(i = ~ tot_act_treat_harv_rate > tot_all_treat_harvest_rate, 
+       j = ~ tot_act_treat_harv_rate + tot_treat_impacts) %>%
+  add_footer_lines("Note: bold values indicate overage.") %>%
+  fontsize(size = 12, part = "footer") %>%
+  font(fontname = "Times New Roman",
+       part = "footer") %>%
+  padding(padding = 0, part = "footer")
+  # set_caption(
+  #   as_paragraph(
+  #     as_chunk(paste("Harvest accounting for upriver spring Chinook (including Snake River summer Chinook), ",T1_mgmtRep[1,1],"–",T1_mgmtRep[nrow(T1_mgmtRep),1],".", sep=""),
+  #              props = fp_text_default(font.family = "Times New Roman",
+  #                                      font.size = 12))),
+  #   align_with_table = FALSE,
+  #   word_stylename = "Table Caption",
+  #   fp_p = table.caption.format,
+  #   autonum = autonumTab)
+```
+<!---BLOCK_LANDSCAPE_START--->
+```{r Table 2 manip, echo=FALSE}
+T2_manip <- T1_base %>% 
+  mutate(space1 = "",
+         space2 = "",
+         space3 = "",
+         space4 = "") %>%
+  relocate(space1, .after = uprvrRun) %>%
+  relocate(space2, .after = bbd_tot_harv) %>%
+  relocate(space3, .after = bonCount) %>%
+  relocate(space4, .after = z6_tot_harv)
+```
+
+```{r tab.cap=paste("Estimated numbers of adult upriver spring Chinook entering the Columbia River, ",head(subset(T2_manip, year>= 1995),1)[,1],"–",tail(subset(T2_manip, year>= 1995),1)[,1],".",sep=""),tab.id = "Table2", echo=FALSE, tab.cap.style = "Table Caption"}
+
+flextable(subset(T2_manip, year>= tail(T2_manip,1)[,1]-9)) %>%
+  set_header_labels(year = "",
+                    uprvrRun = "",
+                    space1 = "",
+                    z1_5_nt_ms_comm_saf = "Harvest Impact Below BON (Zones 1-5)",
+                    z1_5_nt_ms_sport_saf = "Harvest Impact Below BON (Zones 1-5)",
+                    z1_5_nt_res_test = "Harvest Impact Below BON (Zones 1-5)",
+                    bbd_tr = "Harvest Impact Below BON (Zones 1-5)",
+                    bbd_tot_harv = "Harvest Impact Below BON (Zones 1-5)",
+                    space2 = "",
+                    bonCount = "",
+                    space3 = "",
+                    z6_sport = "Harvest Impact from BON to MCN (Zone 6)",
+                    z6_tr_win_comm_gn = "Harvest Impact from BON to MCN (Zone 6)",
+                    z6_tr_comm_gn = "Harvest Impact from BON to MCN (Zone 6)",
+                    z6_tr_cs_gphl = "Harvest Impact from BON to MCN (Zone 6)",
+                    z6_tot_harv = "",
+                    space4 = "",
+                    z6_harv_esc_no = "",
+                    z6_harv_esc_por = "") %>%
+  merge_at(i = 1,
+           j = 4:8,
+           part = "header") %>%
+  merge_at(i = 1,
+           j = 12:16,
+           part = "header")  %>%
+  add_header_row(values = c("",
+                            "",
+                            "",
+                            "Non-treaty Harvest",
+                            "Non-treaty Harvest",
+                            "Non-treaty Harvest",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "Treaty Harvest",
+                            "Treaty Harvest",
+                            "Treaty Harvest",
+                            "",
+                            "",
+                            "Escapement past Zone 6 Fisheries",
+                            "Escapement past Zone 6 Fisheries"), top = FALSE ) %>%
+  merge_at(i = 2,
+           j = 4:6,
+           part = "header") %>%
+  merge_at(i = 2,
+           j = 13:15,
+           part = "header") %>%
+  merge_at(i = 2,
+           j = 18:19,
+           part = "header") %>%
+  add_header_row(values = c("Return Year",
+                            "Upriver Run",
+                            "",
+                            "Comm.",
+                            "Sport",
+                            "Misc.",
+                            "Treaty",
+                            "Grand Total",
+                            "",
+                            "BON Count",
+                            "",
+                            "Non-treaty Sport",
+                            "Winter Gillnet",
+                            "Comm. Gillnet",
+                            "C & S and Platform",
+                            "Zone 6 Total",
+                            "",
+                            "Total",
+                            "% of Run"),
+                 top = FALSE ) %>%
+  set_formatter(year = year_form,
+                    uprvrRun = int_form,
+                    z1_5_nt_ms_comm_saf = int_form,
+                    z1_5_nt_ms_sport_saf = int_form,
+                    z1_5_nt_res_test = int_form,
+                    bbd_tr = int_form,
+                    bbd_tot_harv = int_form,
+                    bonCount = int_form,
+                    z6_sport = int_form,
+                    z6_tr_win_comm_gn = int_form,
+                    z6_tr_comm_gn = int_form,
+                    z6_tr_cs_gphl = int_form,
+                    z6_tot_harv = int_form,
+                    z6_harv_esc_no = int_form,
+                    z6_harv_esc_por = harv_rt_form) %>%
+  fontsize(size = 10,
+           part = "all") %>%
+  font(fontname = "Times New Roman",
+       part = "all") %>%
+  align(align = "center",
+        part = "all") %>%
+  valign(i = 1,
+         valign = "bottom",
+         part = "header") %>%
+  valign(i = 2,
+         valign = "bottom",
+         part = "header") %>%
+  valign(i = 3,
+         valign = "bottom",
+         part = "header") %>%
+  border_remove() %>%
+  width(j = 1,0.7) %>%
+  width(j = 2,0.7) %>%
+  width(j = 3,0.1) %>%
+  width(j = 4:7,0.7) %>%
+  width(j = 8,0.7) %>%
+  width(j = 9,0.1) %>%
+  width(j = 10,0.7) %>%
+  width(j = 11,0.1) %>%
+  width(j = 12:16,0.7) %>%
+  width(j = 17,0.1) %>%
+  width(j = 18:19,0.7) %>%
+  hline_top(part="header",
+            border = fp_border(color="black",
+                               width = 2)) %>%
+  hline_bottom(part="body",
+               border = fp_border(color="black",
+                                  width = 2)) %>%
+  hline(i=1, j = 4:8,
+        part="header", border = fp_border(color="black",
+                                          width = 1)) %>%
+  hline(i=1,
+        j = 12:16,
+        part="header",
+        border = fp_border(color="black",
+                           width = 1)) %>%
   hline(i=2,
-        part="body",
-        border = fp_border(color="black",
-                           width = 0.5)) %>%
-  hline_top(part="header",
-            border = fp_border(color="black",
-                               width = 1.0)) %>%
-  hline_bottom(part="body",
-               border = fp_border(color="black",
-                                  width = 1.0)) %>%
-  width(j = 1, 1.4) %>% 
-  width(j = 2:7, 0.9) %>% 
-  compose(part = "header", i = 1, j = 6,
-         value = as_paragraph("Total",
-                              as_sub("adults"))) %>% 
-  compose(part = "header", i = 1, j = 7,
-         value = as_paragraph("Total",
-                              as_sub("adults+jacks")))
-```
-To project hatchery returns in `r as.numeric(curr_year)`, I assumed `r percent(as.numeric(prior.willClack.predns[13,2]))` of the total return would be comprised of unmarked fish based on a prediction from a Bayesian implementation of a univariate time-series model fit to non-clipped rates from 2008 through `r as.numeric(curr_year)-1`. The actual (reconstructed) rate for the full `r as.numeric(curr_year)` return is estimated to have been approximately `r percent(as.numeric(willChsHWprop.dat[nrow(willChsHWprop.dat),4]))`.
-
-```{r Table 2 data, echo=FALSE}
-T2_willClackRRmanip.dat <- subset(
-  willClackRR.dat, select=-c(
-    hatchery,
-    wild
-    )
-  )
-
-T2_catch <- T2_willClackRRmanip.dat[1:which(
-  T2_willClackRRmanip.dat$catch %like% "Willamette Falls Count"
-  )-1,]
-
-T2_catchTot <- t(
-  data.frame(
-    catch = c(
-      "Totals",
-      colSums(
-        T2_catch[,2:ncol(
-          T2_catch
-          )]
-        )
-      )
-    )
-  )
-
-rownames(
-  T2_catchTot
-  ) <- NULL
-
-colnames(
-  T2_catchTot
-  ) <- c(
-    'catch',
-    "age_3",
-    "age_4",
-    "age_5",
-    "age_6",
-    "adults",
-    "total"
-    )
-
-T2_catch.dat <- rbind(
-  T2_catch,
-  T2_catchTot
-  )
-
-colnames(
-  T2_catch.dat
-  ) <- c(
-    'Catch',
-    "age_3",
-    "age_4",
-    "age_5",
-    "age_6",
-    "adults",
-    "total"
-    )
-
-T2_catch.dat[, 2:ncol(
-  T2_catch.dat
-  )] <- lapply(
-    2:ncol(
-      T2_catch.dat
-      ),
-    function(x) as.numeric(
-      T2_catch.dat[[x]]
-      )
-    )
-
-T2_escapement <- T2_willClackRRmanip.dat[(
-  which(
-    T2_willClackRRmanip.dat$catch %like% "Willamette Falls Count"
-    )
-  ):(
-    which(
-      T2_willClackRRmanip.dat$catch %like% "Run Entering Columbia"
-      )-1),]
-
-T2_escapementTot <- t(
-  data.frame(
-    escapement = c(
-      "Totals",
-      colSums(
-        T2_escapement[,2:ncol(
-          T2_escapement
-          )]
-        )
-      )
-    )
-  )
-
-rownames(
-  T2_escapementTot
-  ) <- NULL
-
-colnames(
-  T2_escapementTot
-  ) <- c(
-    'catch',
-    "age_3",
-    "age_4",
-    "age_5",
-    "age_6",
-    "adults",
-    "total"
-    )
-
-T2_escapement.dat <- rbind(T2_escapement,
-                           T2_escapementTot)
-
-colnames(
-  T2_escapement.dat
-  ) <- c(
-    'Escapement',
-    "age_3",
-    "age_4",
-    "age_5",
-    "age_6",
-    "adults",
-    "total"
-    )
-
-T2_escapement.dat[,2:ncol(
-  T2_escapement.dat
-  )] <- lapply(
-    2:ncol(
-      T2_escapement.dat
-      ),
-    function(x) as.numeric(
-      T2_escapement.dat[[x]]
-      )
-    )
-
-T2_aggr <- T2_willClackRRmanip.dat[(
-  which(
-    T2_willClackRRmanip.dat$catch %like% "Run Entering Columbia"
-    )
-  ):(
-    which(
-      T2_willClackRRmanip.dat$catch %like% "Run Entering Clackamas"
-      )
-    ),]
-
-T2_aggr[,2:ncol(
-  T2_aggr
-  )] <- lapply(
-    2:ncol(
-      T2_aggr
-      ),
-    function(x) as.numeric(
-      T2_aggr[[x]]
-      )
-    )
-```
-\newpage
-Table 2. `r paste0("Preliminary summary of ",curr_year," Willamette River spring Chinook Salmon return",sep="")`.
-```{r Table 2, echo=FALSE, ft.arraystretch = 1.3}
-flextable(T2_catch.dat) %>%
-  align(align = "center",
-        j = 2:7,
-        part = "all") %>%
-  valign(i = 1,
-         valign = "bottom",
-         part = "header") %>%
-  padding(padding.top = 0, part = "all") %>%
-  set_header_labels(Catch = "Catch",
-                    age_3 = "Age 3",
-                    age_4 = "Age 4",
-                    age_5 = "Age 5",
-                    age_6 = "Age 6",
-                    adults = "",
-                    total = "") %>%
-  set_formatter(age_3 = int_form,
-                age_4 = int_form,
-                age_5 = int_form,
-                age_6 = int_form,
-                adults = int_form,
-                total = int_form) %>%
-  fontsize(size = 9,
-           part = "all") %>%
-  font(fontname = "Times New Roman",
-       part = "all") %>%
-  border_remove() %>%
-  hline(i=1,
+        j = 4:6,
         part="header",
         border = fp_border(color="black",
-                           width = 0.5)) %>%
-  hline(i=nrow(T2_catch.dat)-1,
-        part="body",
-        border = fp_border(color="black",
-                           width = 0.5)) %>%
-  hline_top(part="header",
-            border = fp_border(color="black",
-                               width = 1.0)) %>%
-  width(j = 1, 2.5) %>%
-  width(j = 2:5, 0.7) %>%
-  width(j = 7, 0.9) %>%
-  delete_part(part = "footer") %>% 
-  compose(part = "header", i = 1, j = 6,
-         value = as_paragraph("Total",
-                              as_sub("adults"))) %>%
-  compose(part = "header", i = 1, j = 7,
-         value = as_paragraph("Total",
-                              as_sub("adults+jacks")))
-
-flextable(T2_escapement.dat) %>%
-  align(align = "center",
-        j = 2:7,
-        part = "all") %>%
-  valign(i = 1,
-         valign = "bottom",
-         part = "header") %>%
-  padding(padding.top = 0, part = "all") %>%
-  set_header_labels(Escapement = "Escapement",
-                    age_3 = "",
-                    age_4 = "",
-                    age_5 = "",
-                    age_6 = "",
-                    adults = "",
-                    total = "") %>%
-  set_formatter(age_3 = int_form,
-                age_4 = int_form,
-                age_5 = int_form,
-                age_6 = int_form,
-                adults = int_form,
-                total = int_form) %>%
-  fontsize(size = 9,
-           part = "all") %>%
-  font(fontname = "Times New Roman",
-       part = "all") %>%
-  border_remove() %>%
-  hline(i=1,
+                           width = 1)) %>%
+  hline(i=2,
+        j = 13:15,
         part="header",
         border = fp_border(color="black",
-                           width = 0.5)) %>%
-  hline(i=nrow(T2_escapement.dat)-1,
-        part="body",
-        border = fp_border(color="black",
-                           width = 0.5)) %>%
-  width(j = 1, 2.5) %>%
-  width(j = 2:5, 0.7) %>%
-  width(j = 7, 0.9) %>% 
-  delete_part(part = "footer")
-
-flextable(T2_aggr) %>%
-  align(align = "center",
-        j = 2:7,
-        part = "all") %>%
-  # align(align = "left",
-  #       i = 1,
-  #       part = "header") %>%
-  valign(i = 1,
-         valign = "bottom",
-         part = "header") %>%
-  padding(padding.top = 0, part = "all") %>%
-  set_header_labels(catch = "",
-                    age_3 = "",
-                    age_4 = "",
-                    age_5 = "",
-                    age_6 = "",
-                    adults = "",
-                    total = "") %>%
-  set_formatter(age_3 = int_form,
-                age_4 = int_form,
-                age_5 = int_form,
-                age_6 = int_form,
-                adults = int_form,
-                total = int_form) %>%
-  fontsize(size = 9,
-           part = "all") %>%
-  font(fontname = "Times New Roman",
-       part = "all") %>%
-  border_remove() %>%
-  hline_bottom(part="body",
-               border = fp_border(color="black",
-                                  width = 1.0)) %>%
-  width(j = 1, 2.5) %>%
-  width(j = 2:5, 0.7) %>%
-  width(j = 7, 0.9) %>% 
-  delete_part(part = "header")
-```
-## Projected Willamette River spring Chinook Salmon return in `r as.numeric(curr_year)+1`
-
-### Age-3
-The projected `r as.numeric(curr_year)+1` age-3 return was estimated as the product of the age-2 count at Willamette Falls in brood year `r as.numeric(curr_year)-1` and a cohort ratio predicted from a Bayesian implementation of a state-space model (i.e., Kalman Filter) where the process was a time-varying intercept for the linear regression of the logarithm of age-3 Columbia River return:age-2 Willamette Falls counts versus the logarithm of age-2 Willamette Falls counts. This approach produced an prediction of `r format(as.numeric(curr.willClack.predns[1,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(curr.willClack.predns[1,3]), big.mark = ",")`–`r format(as.numeric(curr.willClack.predns[1,4]), big.mark = ",")`) Age-3 fish returning to the Columbia River mouth.
-
-### Age-4
-Of the suite of models considered to predict the number age-4 Willamette River spring Chinook returning to the mouth of the Columbia River, the best supported was a state-space formulation of the linear regression of the logarithm of age-4 returns to the Columbia River mouth versus the logarithm of age-3 returns to the Columbia River mouth and an ocean productivity metric (i.e., the ranking of NOAA ocean ecosystem indicators). In this application, the state or unobserved processes included a time-varying intercept and a time-varying slope for the age-3 predictor. The model predicts `r format(as.numeric(curr.willClack.predns[2,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(curr.willClack.predns[2,3]), big.mark = ",")`–`r format(as.numeric(curr.willClack.predns[2,4]), big.mark = ",")`) Age-4 fish returning to the Columbia River mouth in `r as.numeric(curr_year)+1`.
-
-### Age-5
-The best supported model predicting age-5 returns of Willamette River spring Chinook to the Columbia River mouth in `r as.numeric(curr_year)+1` was again a state-space parameterization of the linear regression of the logarithm of age-5 returns versus the logarithm of age-4 returns, spring PDO (mean of May–August), spring transition date, and index of ichthyoplankton biomass and an index of copepod richness where the state process was a time-varying intercept. This model projects a `r as.numeric(curr_year)+1` age-5 return to the Columbia River mouth of `r format(as.numeric(curr.willClack.predns[3,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(curr.willClack.predns[3,3]), big.mark = ",")`–`r format(as.numeric(curr.willClack.predns[3,4]), big.mark = ",")`).
-
-### Age-6
-The projection for age-6 Willamette River spring Chinook returning to the Columbia River mouth in `r as.numeric(curr_year)+1` is `r format(as.numeric(curr.willClack.predns[4,2]), big.mark = ",")` (95% credible interval: `r ifelse(as.numeric(curr.willClack.predns[4,3]) < 0,0,format(as.numeric(curr.willClack.predns[4,3]), big.mark = ","))`–`r format(as.numeric(curr.willClack.predns[4,4]), big.mark = ",")`), estimated based on the running 5-year average age-6:age-5 cohort ratio.
-
-### Clackamas River forecast
-The best performing model predicting the total Clackamas River return applied the Kalman Filter method, where the state process was a time-varying intercept for the linear regression of the logarithm of the total return size versus of the sum of the prior two year’s jack (age-3) returns. This produced a forecast return of `r format(as.numeric(curr.willClack.predns[14,2]), big.mark = ",")` (95% credible interval: `r format(as.numeric(curr.willClack.predns[14,3]), big.mark = ",")`–`r format(as.numeric(curr.willClack.predns[14,4]), big.mark = ",")`) spring Chinook to the mouth of the Clackamas River.
-
-### Summary
-```{r Table 3 data, echo=FALSE}
-T3 <- data.frame(rowLabel = c(paste0(curr_year+1, " Forecast"),
-                              "95% CrI"),
-                 
-                 age_3 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns,
-                         model=="Willamette Age-3",
-                         select = c(mean.pred.will)
-                         )
-                       ),
-                     big.mark = ","
-                     ),
-                            paste0(
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    curr.willClack.predns,
-                                    model=="Willamette Age-3",
-                                    select = c(lwrHDI.will)
-                                    )
-                                  )<0,0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      curr.willClack.predns,
-                                      model=="Willamette Age-3",
-                                      select = c(lwrHDI.will)
-                                      )
-                                    ),
-                                  big.mark = ","
-                                  )
-                                ),
-                              "\u2013",
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    curr.willClack.predns, 
-                                    model=="Willamette Age-3", 
-                                    select = c(uprHDI.will)
-                                    )
-                                  )<0,
-                                0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      curr.willClack.predns, 
-                                      model=="Willamette Age-3", 
-                                      select = c(uprHDI.will)
-                                      )
-                                    ), 
-                                  big.mark = ","
-                                  )
-                                ),
-                              sep=""
-                              )
-                   ),
-                 age_4 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-4", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-4", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-4", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-4", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(curr.willClack.predns, 
-                                  model=="Willamette Age-4", 
-                                  select = c(uprHDI.will)
-                                  )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 age_5 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-5", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-5", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-5", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-5", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-5", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 age_6 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-6", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-6", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-6", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-6", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-6", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 adults = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Adults", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(curr.willClack.predns, 
-                                model=="Willamette Adults", 
-                                select = c(lwrHDI.will)
-                                )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Adults", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Adults", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Adults", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 total = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Total", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Total", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Total", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Total", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Total", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   )
-                 )
-```
-Table 3. `r paste0(curr_year+1," projected Willamette Basin (Clackamas included) spring Chinook return to Columbia River mouth and 95% credible intervals (95% CrI)",sep="")`.
-```{r Table 3, echo=FALSE, ft.arraystretch = 1.3}
-flextable(T3) %>% 
-  align(align = "center",
-        part = "all") %>%
-  valign(i = 1,
-         valign = "bottom",
-         part = "header") %>%
-  padding(padding = 0, part = "all") %>% 
-  set_header_labels(rowLabel = "",
-                    age_3 = "Age 3",
-                    age_4 = "Age 4",
-                    age_5 = "Age 5",
-                    age_6 = "Age 6",
-                    adults = "",  
-                    total = "") %>%
-  fontsize(size = 9,
-           part = "all") %>%
-  font(fontname = "Times New Roman",
-       part = "all") %>%
-  border_remove() %>%
-  hline(i=1,
+                           width = 1)) %>%
+  hline(i=2,
+        j = 18:19,
         part="header",
         border = fp_border(color="black",
-                           width = 0.5)) %>%
-  # hline(i=2,
-  #       part="body",
-  #       border = fp_border(color="black",
-  #                          width = 0.5)) %>%
-  hline_top(part="header",
-            border = fp_border(color="black",
-                               width = 1.0)) %>%
-  hline_bottom(part="body",
-               border = fp_border(color="black",
-                                  width = 1.0)) %>%
-  width(j = 1, 1.4) %>% 
-  width(j = 2:7, 0.9) %>% 
-  compose(part = "header", i = 1, j = 6,
-         value = as_paragraph("Total",
-                              as_sub("adults"))) %>% 
-  compose(part = "header", i = 1, j = 7,
-         value = as_paragraph("Total",
-                              as_sub("adults+jacks")))
-```
-The `r as.numeric(curr_year)` return included an estimated `r percent(willChsHWprop.dat[nrow(willChsHWprop.dat),4])` unmarked fish. Applying a prediction from a Bayesian implementation of a univariate time-series model fit to non-clipped rates from 2008 through `r as.numeric(curr_year)` (~`r percent(as.numeric(curr.willClack.predns[nrow(curr.willClack.predns),2]))`), the total number of hatchery fish returning to the Columbia River mouth in `r as.numeric(curr_year)+1` is forecast to be `r format(as.numeric(curr.willClack.predns[12,2]), big.mark = ",")` (95% credible interval: `r ifelse(as.numeric(curr.willClack.predns[12,3]) < 0,0,format(as.numeric(curr.willClack.predns[12,3]), big.mark = ","))`–`r format(as.numeric(curr.willClack.predns[12,4]), big.mark = ",")`) (Table 4).
-```{r Table 4 data, echo=FALSE}
-T4 <- data.frame(rowLabel = c(paste0(curr_year+1, " Forecast"),
-                              "95% CrI"),
-                 
-                 age_3 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns,
-                         model=="Willamette Age-3 Hatchery",
-                         select = c(mean.pred.will)
-                         )
-                       ),
-                     big.mark = ","
-                     ),
-                            paste0(
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    curr.willClack.predns,
-                                    model=="Willamette Age-3 Hatchery",
-                                    select = c(lwrHDI.will)
-                                    )
-                                  )<0,0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      curr.willClack.predns,
-                                      model=="Willamette Age-3 Hatchery",
-                                      select = c(lwrHDI.will)
-                                      )
-                                    ),
-                                  big.mark = ","
-                                  )
-                                ),
-                              "\u2013",
-                              ifelse(
-                                as.numeric(
-                                  subset(
-                                    curr.willClack.predns, 
-                                    model=="Willamette Age-3 Hatchery", 
-                                    select = c(uprHDI.will)
-                                    )
-                                  )<0,
-                                0,
-                                format(
-                                  as.numeric(
-                                    subset(
-                                      curr.willClack.predns, 
-                                      model=="Willamette Age-3 Hatchery", 
-                                      select = c(uprHDI.will)
-                                      )
-                                    ), 
-                                  big.mark = ","
-                                  )
-                                ),
-                              sep=""
-                              )
-                   ),
-                 age_4 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-4 Hatchery", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-4 Hatchery", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-4 Hatchery", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-4 Hatchery", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(curr.willClack.predns, 
-                                  model=="Willamette Age-4 Hatchery", 
-                                  select = c(uprHDI.will)
-                                  )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 age_5 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-5 Hatchery", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-5 Hatchery", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-5 Hatchery", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-5 Hatchery", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-5 Hatchery", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 age_6 = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Age-6 Hatchery", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-6 Hatchery", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-6 Hatchery", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Age-6 Hatchery", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Age-6 Hatchery", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 adults = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Adults Hatchery", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(curr.willClack.predns, 
-                                model=="Willamette Adults Hatchery", 
-                                select = c(lwrHDI.will)
-                                )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Adults Hatchery", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Adults Hatchery", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Adults Hatchery", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   ),
-                 
-                 total = c(
-                   format(
-                     as.numeric(
-                       subset(
-                         curr.willClack.predns, 
-                         model=="Willamette Total Hatchery", 
-                         select = c(mean.pred.will)
-                         )
-                       ), 
-                     big.mark = ","
-                     ),
-                   paste0(
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Total Hatchery", 
-                           select = c(lwrHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Total Hatchery", 
-                             select = c(lwrHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     "\u2013",
-                     ifelse(
-                       as.numeric(
-                         subset(
-                           curr.willClack.predns, 
-                           model=="Willamette Total Hatchery", 
-                           select = c(uprHDI.will)
-                           )
-                         )<0,
-                       0,
-                       format(
-                         as.numeric(
-                           subset(
-                             curr.willClack.predns, 
-                             model=="Willamette Total Hatchery", 
-                             select = c(uprHDI.will)
-                             )
-                           ), 
-                         big.mark = ","
-                         )
-                       ),
-                     sep=""
-                     )
-                   )
-                 )
-```
-Table 4. `r paste0(curr_year+1," projected Willamette Basin (Clackamas included) spring Chinook hatchery fish return to Columbia River mouth and 95% credible intervals (95% CrI)",sep="")`.
-```{r Table 4, echo=FALSE, ft.arraystretch = 1.3}
-flextable(T4) %>% 
-  align(align = "center",
-        part = "all") %>%
-  valign(i = 1,
-         valign = "bottom",
-         part = "header") %>%
-  padding(padding = 0, part = "all") %>% 
-  set_header_labels(rowLabel = "",
-                    age_3 = "Age 3",
-                    age_4 = "Age 4",
-                    age_5 = "Age 5",
-                    age_6 = "Age 6",
-                    adults = "",  
-                    total = "") %>%
-  fontsize(size = 9,
-           part = "all") %>%
-  font(fontname = "Times New Roman",
-       part = "all") %>%
-  border_remove() %>%
-  hline(i=1,
+                           width = 1)) %>%
+  hline(i=3,
         part="header",
         border = fp_border(color="black",
-                           width = 0.5)) %>%
-  # hline(i=2,
-  #       part="body",
-  #       border = fp_border(color="black",
-  #                          width = 0.5)) %>%
-  hline_top(part="header",
-            border = fp_border(color="black",
-                               width = 1.0)) %>%
-  hline_bottom(part="body",
-               border = fp_border(color="black",
-                                  width = 1.0)) %>%
-  width(j = 1, 1.4) %>% 
-  width(j = 2:7, 0.9) %>% 
-  compose(part = "header", i = 1, j = 6,
-         value = as_paragraph("Total",
-                              as_sub("adults"))) %>% 
-  compose(part = "header", i = 1, j = 7,
-         value = as_paragraph("Total",
-                              as_sub("adults+jacks")))
+                           width = 1)) %>%
+    footnote(i = 2,
+           j=4,
+           value = as_paragraph(c("Includes kept catch plus release mortalities.")),
+           ref_symbols = c("1"),
+           part = "header") %>%
+    footnote(i = 2,
+           j=13,
+           value = as_paragraph(c("Ceremonial and subsistence includes catch by gillnet, dipnet, and hook-and-line since 1982.")),
+           ref_symbols = c("2"),
+           part = "header") %>%
+  footnote(i = 3,
+           j=2,
+           value = as_paragraph(c("Run sizes adjusted to reflect the counting period from January 1-June 15. Run includes upriver spring Chinook and Snake River summer Chinook.")),
+           ref_symbols = c("3"),
+           part = "header") %>%
+  footnote(i = 3,
+           j=6,
+           value = as_paragraph(c("Includes mortalities from mainstem test fishing and research activities occurring downstream of Bonneville Dam.")),
+           ref_symbols = c("4"),
+           part = "header") %>%
+  footnote(i = 3,
+           j=18,
+           value = as_paragraph(c("Bonneville count minus Zone 6 harvest.")),
+           ref_symbols = c("5"),
+           part = "header") %>%
+  fontsize(size = 12, part = "footer") %>%
+  font(fontname = "Times New Roman",
+       part = "footer") %>%
+  padding(padding = 0, part = "footer")
+  # set_caption(
+  #   as_paragraph(
+  #     as_chunk(paste("Estimated numbers of adult upriver spring Chinook entering the Columbia River, ",head(subset(T1_base_manip, year>= 1995),1)[,1],"–",tail(subset(T1_base_manip, year>= 1995),1)[,1],".",sep=""),
+  #              props = fp_text_default(font.family = "Times New Roman",
+  #                                      font.size = 12))),
+  #   align_with_table = FALSE,
+  #   word_stylename = "Table Caption",
+  #   fp_p = table.caption.format,
+  #   autonum = autonumTab)
 ```
-\newpage
-### Hatchery surplus estimates
-The harvestable surplus of the `r as.numeric(curr_year)+1` return of hatchery fish is calculated by subtracting the hatchery fish escapement goals specified in the Willamette River Spring Chinook Fisheries Management and Evaluation Plan (FMEP) from the total forecast hatchery component of the return. Based on the FMEP, at a total hatchery-fish run size of `r format(as.numeric(curr.willClack.predns[12,2]), big.mark = ",")` fish, the escapement goals for Willamette Falls and the Clackamas River are `r format(as.numeric(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[1,2],hat_esc_goals[1,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[2,2],hat_esc_goals[2,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[3,2],hat_esc_goals[3,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[4,2],hat_esc_goals[4,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[5,2],hat_esc_goals[5,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[6,2],hat_esc_goals[6,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[7,2],hat_esc_goals[7,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[8,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[8,2],hat_esc_goals[8,3],NA))))))))), big.mark = ",")` and `r format(as.numeric(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[1,2],hat_esc_goals[1,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[2,2],hat_esc_goals[2,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[3,2],hat_esc_goals[3,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[4,2],hat_esc_goals[4,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[5,2],hat_esc_goals[5,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[6,2],hat_esc_goals[6,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[7,2],hat_esc_goals[7,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[8,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[8,2],hat_esc_goals[8,4],NA))))))))), big.mark = ",")` fish, respectively. This results in a harvestable surplus of `r format(as.numeric(curr.willClack.predns[12,2])-(as.numeric(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[1,2],hat_esc_goals[1,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[2,2],hat_esc_goals[2,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[3,2],hat_esc_goals[3,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[4,2],hat_esc_goals[4,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[5,2],hat_esc_goals[5,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[6,2],hat_esc_goals[6,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[7,2],hat_esc_goals[7,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[8,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[8,2],hat_esc_goals[8,3],NA)))))))))+as.numeric(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[1,2],hat_esc_goals[1,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[2,2],hat_esc_goals[2,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[3,2],hat_esc_goals[3,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[4,2],hat_esc_goals[4,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[5,2],hat_esc_goals[5,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[6,2],hat_esc_goals[6,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[7,2],hat_esc_goals[7,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_esc_goals[8,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_esc_goals[8,2],hat_esc_goals[8,4],NA)))))))))), big.mark = ",")` fish. Per the allocation schedule included in the FMEP, `r ifelse(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[1,2],hat_alloc[1,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[2,2],hat_alloc[2,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[3,2],hat_alloc[3,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[4,2],hat_alloc[4,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[5,2],hat_alloc[5,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[6,2],hat_alloc[6,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[7,2],hat_alloc[7,3],NA)))))))==0.00," <1%",percent(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[1,2],hat_alloc[1,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[2,2],hat_alloc[2,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[3,2],hat_alloc[3,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[4,2],hat_alloc[4,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[5,2],hat_alloc[5,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[6,2],hat_alloc[6,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[7,2],hat_alloc[7,3],NA)))))))))` of this surplus is to be allocated to recreational fisheries and `r ifelse(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[1,2],hat_alloc[1,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[2,2],hat_alloc[2,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[3,2],hat_alloc[3,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[4,2],hat_alloc[4,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[5,2],hat_alloc[5,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[6,2],hat_alloc[6,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[7,2],hat_alloc[7,4],NA)))))))==0.00," <1%",percent(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[1,2],hat_alloc[1,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[2,2],hat_alloc[2,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[3,2],hat_alloc[3,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[4,2],hat_alloc[4,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[5,2],hat_alloc[5,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[6,2],hat_alloc[6,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[7,2],hat_alloc[7,4],NA)))))))))` `r ifelse(ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[1,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[1,2],hat_alloc[1,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[2,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[2,2],hat_alloc[2,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[3,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[3,2],hat_alloc[3,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[4,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[4,2],hat_alloc[4,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[5,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[5,2],hat_alloc[5,4],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[6,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[6,2],hat_alloc[6,3],ifelse(as.numeric(curr.willClack.predns[12,2]) >= hat_alloc[7,1] & as.numeric(curr.willClack.predns[12,2]) <= hat_alloc[7,2],hat_alloc[7,4],NA)))))))==0.00," of the predicted return as incidental catch for other fisheries", " to commercial fisheries")`.
+<!---BLOCK_LANDSCAPE_STOP--->
+```{r Figure-1, fig.cap="Time series of upriver run size.",echo=FALSE, dpi=300, fig.height=6.00, fig.width=6.5, fig.cap.style = "Image Caption"}
+ggplot(data = T1_base) +
+  theme_bw()+
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color = "black"),
+        axis.title.y = element_text(face = "bold", size = 14,margin = margin(t = 0, r = 10, b = 0, l = 0)),
+        axis.title.y.right = element_text(margin = margin(t = 0, r = 0, b = 0, l = 10)),
+        axis.title.x = element_text(face = "bold", size = 14,margin = margin(t = 10, r = 0, b = 0, l = 0)),
+        axis.text.x = element_text(face = "bold",color = "black",size = 12),
+        axis.text.y = element_text(face = "bold",size = 12,color = "black"),
+        plot.title = element_text(hjust = 0.5,size = 18,face = "bold"),
+        axis.ticks.length = unit(3,"mm"),
+        legend.position = "none")+
+  labs(y = "Upriver Run Size",x = "Return Year") +
+  geom_point(aes(year,uprvrRun),color = "black",size = 2.0)+
+  geom_smooth(aes(year,uprvrRun),method = "gam",formula = y~s(x,k=5),color = "#0072B2", se=FALSE)+
+  # scale_x_discrete(limits=c(seq(min(T1_base$year),max(T1_base$year),5)))+
+  scale_y_continuous(limits=c(0,max(T1_base$uprvrRun)),breaks = seq(0,max(T1_base$uprvrRun),50000),labels = function(x)formatC(x,digits = 0, format = "f", big.mark = ","))
+
+```
+
