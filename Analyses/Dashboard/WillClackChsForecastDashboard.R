@@ -9,7 +9,8 @@ packages <- c("openxlsx",
               "stringr",
               "data.table",
               "flextable",
-              "rmarkdown")
+              "rmarkdown",
+              "ezknitr")
 
 if (!require(install.load)) {
   install.packages("install.load")
@@ -134,5 +135,11 @@ cope_rich <- as.numeric(
 ## data manipulation
 dataManip_fun(curr_year)
 
-## Willamette model(s)
+## run models model(s)
 willClackMod_fun(curr_year)
+
+ezknit("U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Output\\Memos\\Markdown\\WillForecastMarkDwn.v.2.Rmd",
+       wd = "U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Output\\Memos\\Markdown\\Rendered Memos",
+       "U:\\OSCRP\\CRM\\^ CRM\\~ Reports and Presentations\\~ Run Recon. and Forecasts\\Willamette\\Run Forecasts\\Willamette spring Chinook forecasts\\Output\\Memos\\Markdown\\Rendered Memos\\test.pdf")
+
+getwd()

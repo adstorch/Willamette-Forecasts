@@ -169,7 +169,7 @@ dataManip_fun <- function(curr_year){
         na.rm = TRUE
       )
     ),
-    year >= 1998
+    year >= 1998 & year <= curr_year
   )
   
   # sp_pdo <- head(sp_pdo, -1) ####  THIS WILL NEED TO BE COMMENTED-OUT IN FINAL
