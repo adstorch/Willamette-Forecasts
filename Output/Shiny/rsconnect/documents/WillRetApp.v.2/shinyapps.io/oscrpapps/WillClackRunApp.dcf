@@ -5,7 +5,7 @@ account: oscrpapps
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9844353
-bundleId: 7699216
+bundleId: 7700131
 url: https://oscrpapps.shinyapps.io/WillClackRunApp/
 version: 1
 asMultiple: FALSE

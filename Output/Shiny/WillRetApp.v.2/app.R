@@ -36,18 +36,11 @@ ui = fluidPage(
         width = 11.0,
         h2(
           'Willamette River spring-summer Chinook Salmon Returns/Forecasts',
-          style="margin-bottom: 15 px;margin-top: 15 px;"
+          style="margin-bottom: 15 px;margin-top: 35px;"
         ),
         h5(
-          em(
-            paste0(
-              'Last updated: ',
-              format(Sys.time(),
-                     format = "%B %d, %Y %H:%M:%S"
-              )
-            )
-          ),
-          style="margin: 20px;margin-bottom: 40px;"
+          "",
+          style="margin: 20px;margin-bottom: 55px;"
         )
       )
       
@@ -183,17 +176,18 @@ ui = fluidPage(
              br(),
              "Direct questions to:",
              br(),
-             "Adam Storch",
-             br(),
-             "17330 SE Evelyn St,",
-             br(),
-             "Clackamas, OR 97015",
+             "Adam Storch (Analyst)",
              br(),
              mailtoR(email = "adam.j.storch@odfw.oregon.gov",
                      text = "adam.j.storch@odfw.oregon.gov",
-                     subject = "Willamette spring-summer Chinook"),
+                     subject = "Willamette spring-summer Chinook", 
+                     cc = "",
+                     bcc = ""),
              
-             use_mailtoR()
+             use_mailtoR(),
+             br(),
+             br(),
+             "More to come..."
              
     )
   )
